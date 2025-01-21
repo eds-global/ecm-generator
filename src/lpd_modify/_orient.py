@@ -1,29 +1,36 @@
 import streamlit as st
 
-def perging_data_weekly(data, epd):
-    # Define markers to identify the section of interest
-    start_marker = "Floors / Spaces / Walls / Windows / Doors"
-    end_marker = "Electric & Fuel Meters"
+def getOrientation(data, orient):
+    start_marker = "Site and Building Data"
+    end_marker = "Materials / Layers / Constructions"
 
-    # Find the start and end indices of the relevant section
     start_index = None
     end_index = None
     for i, line in enumerate(data):
         if start_marker in line:
-            start_index = i + 3
+            start_index = i + 1
         if end_marker in line:
-            end_index = i - 3
+            end_index = i - 1
             break
 
-    # Ensure markers were found
     if start_index is None or end_index is None:
         raise ValueError("Could not find the specified markers in the file.")
 
-    # Iterate through the relevant section and replace `LIGHTING-W/AREA` values
-    for i in range(start_index, end_index + 1):
-        if "EQUIPMENT-W/AREA" in data[i]:
-            # Replace the value of `LIGHTING-W/AREA` with the provided `lpd`
-            data[i] = f"   EQUIPMENT-W/AREA  = ( {epd} )\n"
-    
-    # Return the modified data as a list of lines
+    section = data[start_index:end_index]
+
+    azimuth_found = False
+    holidays_index = None
+
+    for i, line in enumerate(section):
+        if "AZIMUTH" in line:
+            section[i] = f'   AZIMUTH          = {orient}\n'
+            azimuth_found = True
+        if "HOLIDAYS" in line:
+            holidays_index = i
+
+    if not azimuth_found and holidays_index is not None:
+        section.insert(holidays_index, f'   AZIMUTH          = {orient}\n')
+
+    data[start_index:end_index] = section
+
     return data
