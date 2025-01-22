@@ -1,7 +1,7 @@
 import streamlit as st
 import subprocess
 import os
-from src import lpd
+from src import modify
 import pandas as pd
 from streamlit_lottie import st_lottie
 from streamlit_card import card
@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import json
 import streamlit.components.v1 as components
+import re
+import zipfile
 
 # Set the page configuration with additional options layout='wide',
 st.set_page_config(
@@ -152,11 +154,6 @@ def main():
             
     logo_url = "https://ecm-generator-edsglobal.streamlit.app/"
     logo_image_path = "images/eQcb_142.gif"
-    # col1, col2, col3 = st.columns([1,1,0.5])
-    # with col1:
-    #     st.image(logo_image_path, width=80)
-    # with col2:
-        # st.markdown("<h1 class='heading-with-shadow'>eQUEST Utilities</h1>", unsafe_allow_html=True)
     st.markdown("# :rainbow[ECM Generator]")
 
     on = st.toggle("Select Theme")
@@ -176,116 +173,168 @@ def main():
         }
         </style>
     """, unsafe_allow_html=True)
-    
-    # # Create two rows of columns with equal widths
-    # col2, col3 = st.columns(2) 
-    
-    # # Second row of buttons
-    # with col2:
-    #     if st.button("About EDS", key="eds"): 
-    #         st.session_state.script_choice = "eds"
-    # with col3:
-    #     if st.button("ECM Generator", key="ecm"):
-    #         st.session_state.script_choice = "ecm"
 
     if st.session_state.script_choice == "ecm":
         st.markdown("""
-        <h4 style="color:red;">📄 Energy Conservation Measures (ECM)</h4>
+        <h4 style="color:red;">⚡ Energy Conservation Measures (ECM)</h4>
         <b>Purpose:</b> The ECM Generator is designed to read and interpret INP files, which are the primary project files used by eQuest. These files contain all the necessary data about a building's energy model, including geometry, materials, systems, and schedules.<br>
         """, unsafe_allow_html=True)
         uploaded_file = st.file_uploader("Upload an INP file", type="inp", accept_multiple_files=False)
-
+        # file_name = os.path.splitext(uploaded_file.name)[0]
         if uploaded_file is not None:
+            file_name = os.path.splitext(uploaded_file.name)[0]
             # Initialize ECM sets with None values if not already in session state
             if "ecm_sets" not in st.session_state:
                 st.session_state.ecm_sets = [{"Orient": None, "Wall-Type": None, "Roof-Type": None, 
                                             "Window-Type": None, "WWR": None, "LPD": None, "EPD": None}]
 
-            # Function to add a new ECM set
+            # Function to add a new ECM set dynamically
             def add_new_ecm_set():
                 st.session_state.ecm_sets.append({"Orient": None, "Wall-Type": None, "Roof-Type": None, 
                                                 "Window-Type": None, "WWR": None, "LPD": None, "EPD": None})
 
-            # Render all ECM sets dynamically
-            for index, ecm_set in enumerate(st.session_state.ecm_sets):
-                st.markdown(f"""<h7 style="color:red;">🔴 ECM Set {index + 1}</h7>""", unsafe_allow_html=True)
+            # ECM Set Selection
+            selected_ecms = st.multiselect(
+                "🔴 Select ECM Sets",
+                [f"ECM Set {i+1}" for i in range(10)],
+                default=["ECM Set 1"]
+            )
 
-                # ECM Set Inputs
-                col1, col2, col3, col4, col5, col6 = st.columns(6)
-                
+            # Extract numbers from selected ECM sets
+            selected_indices = [int(re.search(r'\d+', ecm).group()) - 1 for ecm in selected_ecms]
+
+            # Ensure ECM sets exist based on selection
+            while len(st.session_state.ecm_sets) < max(selected_indices) + 1:
+                add_new_ecm_set()
+
+            # Flag to track if any validation error occurs
+            validation_error = False
+            updated_files = []
+
+            # Render ECM input fields dynamically based on selected sets
+            for index in selected_indices:
+                ecm_set = st.session_state.ecm_sets[index]
+                st.markdown(f"###### ⚡ <span style='color:red;'>ECM Set {index + 1}</span>", unsafe_allow_html=True)
+                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
                 with col1:
                     ecm_set["Orient"] = st.text_input(
                         f"Orientation (°)", 
                         key=f"orient_{index}", 
                         value="" if ecm_set["Orient"] is None else str(ecm_set["Orient"]),
-                        placeholder="Enter Orientation"
+                        placeholder="Enter Orientation (0-360)"
                     )
-                    ecm_set["Orient"] = float(ecm_set["Orient"]) if ecm_set["Orient"] else None
-                
+                    try:
+                        ecm_set["Orient"] = float(ecm_set["Orient"]) if ecm_set["Orient"] else None
+                        if ecm_set["Orient"] is not None and not (0 <= ecm_set["Orient"] <= 360):
+                            st.warning("⚠ Orientation must be between 0 and 360 degrees.")
+                            validation_error = True
+                    except ValueError:
+                        st.error("❌ Invalid input! Please enter a valid number for Orientation.")
+                        validation_error = True
+
                 with col2:
                     ecm_set["Wall-Type"] = st.selectbox(
-                        f"Wall-Type", 
-                        options=[None, "Solid_Burnt_Brick-230[ENS]", "Solid_Burnt_Brick-230_XPS-5[ENS]", "Solid_Burnt_Brick-230_XPS-10[ENS]",
-                        "Solid_Burnt_Brick-230_EPS-25[ENS]", "Solid_Burnt_Brick-230_EPS-50[ENS]", "AAC_Block_Wall-200[ENS]",
-                        "AAC_Block_Wall-200_EPS-25[ENS]", "AAC_Block_Wall-200_EPS-50[ENS]", "AAC_Block_Wall-200_PUF-50[ENS]",
-                        "Fly_Ash_Brick-230_PUF-25[ENS]", "Fly_Ash_Brick-230_PUF-50[ENS]", "Solid_Concrete_Block-200[ENS]",
-                        "Solid_Concrete_Block-200_XPS-5[ENS]", "Solid_Concrete_Block-200_EPS-15[ENS]", "Solid_Concrete_Block-200_EPS-20[ENS]",
-                        "Solid_Concrete_Block-200_XPS-25[ENS]", "Solid_Concrete_Block-200_XPS-50[ENS]", "Solid_Concrete_Block-200_EPS-25[ENS]",
-                        "Solid_Concrete_Block-200_EPS-50[ENS]", "Reinforce_Concrete_200[ENS]"], 
+                        f"Wall-Type",
+                        options=[None, "Solid_Burnt_Brick-230[ENS]", "Solid_Burnt_Brick-230_XPS-5[ENS]", 
+                                "Solid_Burnt_Brick-230_XPS-10[ENS]", "Solid_Burnt_Brick-230_EPS-25[ENS]", 
+                                "Solid_Burnt_Brick-230_EPS-50[ENS]", "AAC_Block_Wall-200[ENS]"],
                         key=f"wall_type_{index}", 
-                        format_func=lambda x: "Select Wall Type" if x is None else x
+                        format_func=lambda x: "Select Wall Type" if x is None else x,
+                        disabled=True  # Disabling selection
                     )
-                
+
                 with col3:
                     ecm_set["Roof-Type"] = st.selectbox(
                         f"Roof-Type", 
                         options=[None, "RF-1", "RF-2", "RF-3", "RF-4"], 
-                        key=f"roof_type_{index}",
-                        format_func=lambda x: "Select Roof Type" if x is None else x
+                        key=f"roof_type_{index}", 
+                        format_func=lambda x: "Select Roof Type" if x is None else x,
+                        disabled=True  # Disabling selection
                     )
-                
+
                 with col4:
                     ecm_set["Window-Type"] = st.selectbox(
                         f"Window-Type", 
                         options=[None, "WIN-1", "WIN-2"], 
-                        key=f"window_type_{index}",
-                        format_func=lambda x: "Select Window Type" if x is None else x
+                        key=f"window_type_{index}", 
+                        format_func=lambda x: "Select Window Type" if x is None else x,
+                        disabled=True  # Disabling selection
                     )
+
+                with col5:
                     ecm_set["WWR"] = st.text_input(
                         f"WWR (0-1)", 
                         key=f"wwr_{index}", 
                         value="" if ecm_set["WWR"] is None else str(ecm_set["WWR"]),
-                        placeholder="Enter WWR"
+                        placeholder="Enter WWR (0-1)"
                     )
-                    ecm_set["WWR"] = float(ecm_set["WWR"]) if ecm_set["WWR"] else None
-                
-                with col5:
+                    try:
+                        ecm_set["WWR"] = float(ecm_set["WWR"]) if ecm_set["WWR"] else None
+                        if ecm_set["WWR"] is not None and not (0 <= ecm_set["WWR"] <= 1):
+                            st.warning("⚠ WWR must be between 0 and 1.")
+                            validation_error = True
+                    except ValueError:
+                        st.error("❌ Invalid input! Please enter a valid number for WWR.")
+                        validation_error = True
+
+                with col6:
                     ecm_set["LPD"] = st.text_input(
                         f"LPD (W/ft²)", 
                         key=f"lpd_{index}", 
                         value="" if ecm_set["LPD"] is None else str(ecm_set["LPD"]),
-                        placeholder="Enter LPD"
+                        placeholder="Enter LPD (0-2)"
                     )
-                    ecm_set["LPD"] = float(ecm_set["LPD"]) if ecm_set["LPD"] else None
-                
-                with col6:
+                    try:
+                        ecm_set["LPD"] = float(ecm_set["LPD"]) if ecm_set["LPD"] else None
+                        if ecm_set["LPD"] is not None and not (0 <= ecm_set["LPD"] <= 2):
+                            st.warning("⚠ LPD must be between 0 and 2 W/ft².")
+                            validation_error = True
+                    except ValueError:
+                        st.error("❌ Invalid input! Please enter a valid number for LPD.")
+                        validation_error = True
+
+                with col7:
                     ecm_set["EPD"] = st.text_input(
                         f"EPD (W/ft²)", 
                         key=f"epd_{index}", 
                         value="" if ecm_set["EPD"] is None else str(ecm_set["EPD"]),
-                        placeholder="Enter EPD"
+                        placeholder="Enter EPD (0-100)"
                     )
-                    ecm_set["EPD"] = float(ecm_set["EPD"]) if ecm_set["EPD"] else None
+                    try:
+                        ecm_set["EPD"] = float(ecm_set["EPD"]) if ecm_set["EPD"] else None
+                        if ecm_set["EPD"] is not None and not (0 <= ecm_set["EPD"] <= 100):
+                            st.warning("⚠ EPD must be between 0 and 100 W/ft².")
+                            validation_error = True
+                    except ValueError:
+                        st.error("❌ Invalid input! Please enter a valid number for EPD.")
+                        validation_error = True
 
-            # Button to generate INP file
-            if st.button("Generate INP"):
-                for index, ecm_set in enumerate(st.session_state.ecm_sets):
-                    modified_values = {k: v for k, v in ecm_set.items() if v is not None}
-                    lpd.main(uploaded_file, modified_values, index + 1)
+            # Conditionally show the "Generate INP" button only if there are no validation errors
+            if not validation_error:
+                if st.button("Generate INP Files"):
+                    with zipfile.ZipFile(file_name + "_ECM_Results.zip", "w", zipfile.ZIP_DEFLATED) as zipf:
+                        for index in selected_indices:
+                            ecm_set = st.session_state.ecm_sets[index]
+                            modified_values = {k: v for k, v in ecm_set.items() if v is not None}
+                            file_content, updated_file_name = modify.update_inp_file(uploaded_file, modified_values, index + 1)
+                            if file_content:
+                                zipf.writestr(updated_file_name, file_content)
+                                st.info(f"✅ ECM Set {index + 1} - Updated Values: {modified_values}")
 
-            # # Button to add a new ECM set
-            # if st.button("Add ECM Set"):
-            #     add_new_ecm_set()
+                    # Provide download link for the zip file
+                    with open(file_name + "_ECM_Results.zip", "rb") as f:
+                        zip_bytes = f.read()
+                    # Check if all inputs are None and return a message if true
+                    if file_content is None:
+                        # st.info("❌ Invalid input! Please enter some text to modify.")
+                        return None, None
+                    else:
+                        st.download_button(
+                            label="Download ECM Sets",
+                            data=zip_bytes,
+                            file_name=file_name + "_ECM_Results.zip",
+                            mime="application/zip"
+                        )
 
     elif st.session_state.script_choice == "eds":
         st.markdown("""

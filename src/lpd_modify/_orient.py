@@ -1,6 +1,13 @@
 import streamlit as st
 
 def getOrientation(data, orient):
+    # Open and read the input file
+    # with open(data_path, 'r') as file:
+    #     data = file.readlines()
+    
+    if orient is None:
+        return data
+        
     start_marker = "Site and Building Data"
     end_marker = "Materials / Layers / Constructions"
 

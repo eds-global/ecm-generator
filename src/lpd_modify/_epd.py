@@ -1,6 +1,13 @@
 import streamlit as st
 
-def perging_data_weekly(data, epd):
+def perging_data_weekly(data_path, epd):
+    # Open and read the input file
+    with open(data_path, 'r') as file:
+        data = file.readlines()
+    
+    if epd is None:
+        return data
+        
     # Define markers to identify the section of interest
     start_marker = "Floors / Spaces / Walls / Windows / Doors"
     end_marker = "Electric & Fuel Meters"

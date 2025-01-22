@@ -1,10 +1,12 @@
 import streamlit as st
 
-def perging_data_annual(data_path, lpd):
+def perging_data_annual(data, lpd):
     # Open and read the input file
-    with open(data_path, 'r') as file:
-        data = file.readlines()
-    
+    # with open(data_path, 'r') as file:
+    #     data = file.readlines()
+    if lpd is None:
+        return data
+        
     # Define markers to identify the section of interest
     start_marker = "Floors / Spaces / Walls / Windows / Doors"
     end_marker = "Electric & Fuel Meters"
