@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import re
+import streamlit as st
 
 def remove_section_content(content, start_marker, end_marker):
     """
@@ -101,7 +102,7 @@ def remove_window_sections(content, start_marker, end_marker):
 
     return pre_marker_content + filtered_content + post_marker_content
 
-def include_window_sections(content, start_marker, end_marker, df, glass_type_name):
+def include_window_sections(content, start_marker, end_marker, df, glass_type_name, wwr):
     # Initialize indices to None
     start_index = None
     end_index = None
@@ -152,8 +153,8 @@ def include_window_sections(content, start_marker, end_marker, df, glass_type_na
    FRAME-WIDTH      = 0
    X                = {row['X']}
    Y                = {row['Y']}
-   HEIGHT           = {row['HEIGHT6']}
-   WIDTH            = {row['WIDTH6']}
+   HEIGHT           = {row['HEIGHT1']}
+   WIDTH            = {row['WIDTH1']}
    FRAME-CONDUCT    = 2.781
    ..
 '''
@@ -164,11 +165,11 @@ def include_window_sections(content, start_marker, end_marker, df, glass_type_na
     modified_content = content[:start_index] + modified_section + content[end_index:]
     return modified_content
 
-def process_sections(file_path, df):
+def process_sections(content, df, wwr):
     # df.to_csv("window_coordinates.csv", index=False)
     df = df[df['SH2'].isna() | (df['SH2'] == '')]
-    with open(file_path, 'r') as file:
-        content = file.readlines()
+    # with open(file_path, 'r') as file:
+    #     content = file.readlines()
     
     content = delete_glass_type_codes(content)
     content, glass_type_name = modify_glass_types(content, "$              Glass Types", "$              Window Layers")
@@ -176,19 +177,17 @@ def process_sections(file_path, df):
     content = remove_window_sections(content, "$ **      Floors / Spaces / Walls / Windows / Doors      **",
         "$ **              Electric & Fuel Meters                 **")
     content = include_window_sections(content, "$ **      Floors / Spaces / Walls / Windows / Doors      **",
-        "$ **              Electric & Fuel Meters                 **", df, glass_type_name)
+        "$ **              Electric & Fuel Meters                 **", df, glass_type_name, wwr)
     
-    dir_name, file_name = os.path.split(file_path)
-    modified_file_name = 'Purged_90%_' + file_name
-    modified_file_path = os.path.join(dir_name, modified_file_name)
-
-    with open(modified_file_path, 'w') as file:
-        file.writelines(content)
-    st.success(f"Modified file saved as: {modified_file_path}")
     return content
-def process_all_inp_files_in_folder(inp_path, df):
+
+def process_all_inp_files_in_folder(inp_path, df, wwr, file_name):
+    # st.success(file_name)
+    if wwr is None:
+        return inp_path
     """
     Process all .inp files in a folder, modifying each one using the process_sections function.
     """
-    if inp_path.endswith('.inp'):
-        process_sections(inp_path, df)
+    if file_name.endswith('.inp'):
+        st.success(file_name)
+        process_sections(inp_path, df, wwr)
