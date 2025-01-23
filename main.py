@@ -21,12 +21,7 @@ import zipfile
 st.set_page_config(
     page_title="ECM Generator",
     page_icon="🌟",
-    layout='wide',  # Only 'centered' or 'wide' are valid options
-    menu_items={                          
-        'Get Help': 'https://www.example.com/help',
-        'Report a bug': 'https://www.example.com/bug',
-        'About': '# This is an **eQuest Utilities** application!'
-    }
+    layout='wide',
 )
 
 def load_lottieurl(url: str):
@@ -240,16 +235,20 @@ def main():
                                 "Solid_Burnt_Brick-230_EPS-50[ENS]", "AAC_Block_Wall-200[ENS]"],
                         key=f"wall_type_{index}", 
                         format_func=lambda x: "Select Wall Type" if x is None else x,
-                        disabled=True  # Disabling selection
                     )
 
                 with col3:
                     ecm_set["Roof-Type"] = st.selectbox(
                         f"Roof-Type", 
-                        options=[None, "RF-1", "RF-2", "RF-3", "RF-4"], 
+                        options=[None, "Reinforce_Concrete_200[ENS]", "Reinforce_Concrete_200_XPS25[ENS]", "Reinforce_Concrete_200_XPS50[ENS]",
+                         "Reinforce_Concrete_200_XPS75[ENS]", "Reinforce_Concrete_200_XPS100[ENS]", "Reinforce_Concrete_200_PUF25[ENS]", 
+                         "Reinforce_Concrete_200_PUF50[ENS]", "Reinforce_Concrete_200_PUF75[ENS]", "Reinforce_Concrete_200_PUF100[ENS]",
+                         "Reinforce_Concrete_200_EPS2.5[ENS]", "Reinforce_Concrete_200_EPS5[ENS]", "Reinforce_Concrete_200_EPS7.5[ENS]",
+                         "Reinforce_Concrete_200_EPS10[ENS]", "Reinforce_Concrete_200_EPS12.5[ENS]", "Reinforce_Concrete_200_EPS15[ENS]",
+                         "Reinforce_Concrete_200_EPS17.5[ENS]", "Reinforce_Concrete_200_EPS20[ENS]", "Reinforce_Concrete_200_EPS25[ENS]",
+                         "Reinforce_Concrete_200_EPS50[ENS]", "Reinforce_Concrete_200_EPS75[ENS]", "Reinforce_Concrete_200_EPS100[ENS]"], 
                         key=f"roof_type_{index}", 
                         format_func=lambda x: "Select Roof Type" if x is None else x,
-                        disabled=True  # Disabling selection
                     )
 
                 with col4:
@@ -258,7 +257,6 @@ def main():
                         options=[None, "WIN-1", "WIN-2"], 
                         key=f"window_type_{index}", 
                         format_func=lambda x: "Select Window Type" if x is None else x,
-                        disabled=True  # Disabling selection
                     )
 
                 with col5:
