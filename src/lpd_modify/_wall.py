@@ -9,7 +9,7 @@ def update_Material_Layers_Construction(name, wall):
 
     with open(name, 'r') as file:
         inp_content = file.read()
-
+   
     start_marker = "Materials / Layers / Constructions"
     end_marker1 = "= LAYERS"
     end_marker2 = "= CONSTRUCTION"
@@ -24,8 +24,8 @@ def update_Material_Layers_Construction(name, wall):
     end_index1 = inp_content.rfind('\n', start_index, end_index1)
     end_index2 = inp_content.rfind('\n', start_index, end_index2)
 
-    matData = pd.read_excel('database/Layers_Thickness.xlsx')
-    selected_row = matData[matData['Name'] == wall]
+    matData = pd.read_excel('database/ML_ScaleUp_v02.xlsx', sheet_name="Wall-Options")
+    selected_row = matData[matData['Wall-Name'] == wall]
 
     if selected_row.empty:
         print(f"No matching data found for wall: {wall}")

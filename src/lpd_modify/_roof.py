@@ -25,7 +25,7 @@ def update_Material_Layers_Construction_Roof(name, roof):
     end_index2 = inp_content.rfind('\n', start_index, end_index2)
 
     matData = pd.read_excel('database/ML_ScaleUp_v02.xlsx', sheet_name="Roof-Options")
-    selected_row = matData[matData['Name'] == roof]
+    selected_row = matData[matData['Roof-Name'] == roof]
 
     if selected_row.empty:
         print(f"No matching data found for wall: {roof}")
