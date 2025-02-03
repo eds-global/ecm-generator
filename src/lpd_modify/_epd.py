@@ -1,29 +1,19 @@
 import streamlit as st
 
-def perging_data_weekly(data_path, epd):
-    # Open and read the input file
-    with open(data_path, 'r') as file:
-        data = file.readlines()
-    
+def getEPD(data, epd):
     if epd is None:
         return data
+    
+    with open(data, 'r') as file:
+        data = file.read()
         
-    # Define markers to identify the section of interest
     start_marker = "Floors / Spaces / Walls / Windows / Doors"
     end_marker = "Electric & Fuel Meters"
 
-    # Find the start and end indices of the relevant section
-    start_index = None
-    end_index = None
-    for i, line in enumerate(data):
-        if start_marker in line:
-            start_index = i + 3
-        if end_marker in line:
-            end_index = i - 3
-            break
+    start_index = data.find(start_marker)
+    end_index = data.find(end_marker)
 
-    # Ensure markers were found
-    if start_index is None or end_index is None:
+    if start_index == -1 or end_index == -1:
         raise ValueError("Could not find the specified markers in the file.")
 
     # Iterate through the relevant section and replace `LIGHTING-W/AREA` values
@@ -32,5 +22,4 @@ def perging_data_weekly(data_path, epd):
             # Replace the value of `LIGHTING-W/AREA` with the provided `lpd`
             data[i] = f"   EQUIPMENT-W/AREA  = ( {epd} )\n"
     
-    # Return the modified data as a list of lines
     return data

@@ -4,7 +4,6 @@ import streamlit as st
 
 def update_Material_Layers_Construction(name, wall):
     if wall is None:
-        print("No wall specified, returning original file.")
         return name
 
     with open(name, 'r') as file:
@@ -77,5 +76,6 @@ def update_Material_Layers_Construction(name, wall):
 
     with open(name, 'w') as file:
         file.write(updated_inp_content)
+
 
     return name

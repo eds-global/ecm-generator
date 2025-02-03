@@ -17,16 +17,21 @@ def update_inp_file(uploaded_file, modified_values, idx):
     Update the uploaded INP file based on selected ECMs and return the content for download.
     """
     # Extract ECM values from the modified values
+    name = modified_values.get("name", None)
     lpd = modified_values.get("LPD", None)
     epd = modified_values.get("EPD", None)
     wwr = modified_values.get("WWR", None)
     orient = modified_values.get("Orient", None)
     wall = modified_values.get("Wall-Type", None)
     roof = modified_values.get("Roof-Type", None)
-    window = modified_values.get("Window-Type", None)
-
+    windowU = modified_values.get("Window-U-Value", None)
+    shading_coef = modified_values.get("Shading Coefficient", None)
+    glassCond = modified_values.get("Glass Conductance", None)
+    vis_trans = modified_values.get("Visible Transmittance", None)
+    window = f"{shading_coef}_{glassCond}_{vis_trans}"
+ 
     # Check if all inputs are None and return a message if true
-    if all(value is None for value in [lpd, epd, wwr, orient, wall, roof, window]):
+    if all(value is None for value in [lpd, epd, wwr, orient, wall, roof, windowU]):
         st.info("❌ Invalid input! Please enter some text to modify.")
         return None, None
 
@@ -41,16 +46,16 @@ def update_inp_file(uploaded_file, modified_values, idx):
 
             inp_path = inp_path.replace('\n', '\r\n')
             # Process the ECM updates
-            if lpd is not None or epd is not None or wwr is not None or orient is not None or wall is not None or roof is not None or window is not None:
+            if lpd is not None or epd is not None or wwr is not None or orient is not None or wall is not None or roof is not None or windowU is not None:
                 _data = inp_path  # Start with the original data
-                _data = _wall.update_Material_Layers_Construction(inp_path, wall)
-                _data = _roof.update_Material_Layers_Construction_Roof(inp_path, roof)
-                _data = _window.getWindows(inp_path, window)
-                _data = _epd.perging_data_weekly(_data, epd)
-                _data = _lpd.perging_data_annual(_data, lpd)
+                _data = _wall.update_Material_Layers_Construction(_data, wall)
+                _data = _roof.update_Material_Layers_Construction_Roof(_data, roof)
+                _data = _window.getWindows(_data, shading_coef, glassCond, vis_trans, windowU)
+                _data = _epd.getEPD(_data, epd)
+                _data = _lpd.getLPD(_data, lpd)
                 _data = _orient.getOrientation(_data, orient)
                 # WWR
-                ''' 
+                '''
                 polygon_df = _wwr.extract_polygons(inp_path)
                 df = _wwr.process_inp_file(inp_path)
                 df["Next-Column"] = df.apply(_wwr.get_next_column, axis=1)
@@ -111,7 +116,7 @@ def update_inp_file(uploaded_file, modified_values, idx):
                 # print(_data)
                 # _data = purge_windows.process_all_inp_files_in_folder(_data, df, wwr, uploaded_file.name)
                 base_name, ext = os.path.splitext(uploaded_file.name)
-                updated_file_name = f"{base_name}_ECM_Set_{idx}{ext}"
+                updated_file_name = f"{base_name}_{name}{ext}"
                 updated_file_path = os.path.join(temp_dir, updated_file_name)
 
                 with open(updated_file_path, 'w', newline='\r\n') as file:

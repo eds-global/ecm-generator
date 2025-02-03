@@ -4,7 +4,6 @@ import streamlit as st
 
 def update_Material_Layers_Construction_Roof(name, roof):
     if roof is None:
-        print("No wall specified, returning original file.")
         return name
 
     with open(name, 'r') as file:
@@ -29,7 +28,7 @@ def update_Material_Layers_Construction_Roof(name, roof):
 
     if selected_row.empty:
         print(f"No matching data found for wall: {roof}")
-        return name
+        return inp_content
 
     row = selected_row.iloc[0]
 
