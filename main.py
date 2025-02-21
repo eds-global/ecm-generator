@@ -15,7 +15,6 @@ import streamlit.components.v1 as components
 import re
 import zipfile
 
-# Set the page configuration with additional options layout='wide',
 st.set_page_config(
     page_title="ECM Generator",
     page_icon="🌟",
