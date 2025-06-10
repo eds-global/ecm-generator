@@ -112,15 +112,8 @@ def main():
     logo_url = "https://ecm-generator-edsglobal.streamlit.app/"
     st.markdown("# :rainbow[ECM Generator]")
 
-    on = st.toggle("Select Theme")
-    if on:
-        set_dark_theme()
-        pass  # Do nothing
-        background_image_url = "https://i.pinimg.com/originals/cf/04/e9/cf04e9530f25312133dc7f93586591ff.gif"
-
     st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
     
-
     if st.session_state.script_choice == "ecm":
         st.markdown("""
         <h4 style="color:red;">⚡ Energy Conservation Measures (ECM)</h4>
