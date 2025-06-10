@@ -1,12 +1,11 @@
-import streamlit as st
-
 def getOrientation(data, orient):
     if orient is None:
         return data
-    
-    with open(data, 'r') as file:
-        data = file.read()
-        
+
+    # Convert list of lines to a single string if needed
+    if isinstance(data, list):
+        data = ''.join(data)
+
     start_marker = "Site and Building Data"
     end_marker = "Materials / Layers / Constructions"
 
@@ -22,7 +21,7 @@ def getOrientation(data, orient):
     azimuth_found = False
     holidays_index = None
 
-    # Modify lines
+    # Modify the section
     for i, line in enumerate(section):
         if "AZIMUTH" in line:
             section[i] = f'   AZIMUTH          = {orient}'
@@ -30,14 +29,13 @@ def getOrientation(data, orient):
         if "HOLIDAYS" in line:
             holidays_index = i
 
-    # Insert AZIMUTH if not found
     if not azimuth_found and holidays_index is not None:
         section.insert(holidays_index, f'   AZIMUTH          = {orient}')
 
     # Join section back into a string
     updated_section = "\n".join(section)
 
-    # Reconstruct the file content
+    # Reconstruct full content
     updated_data = data[:start_index] + updated_section + data[end_index:]
 
     return updated_data
