@@ -1,0 +1,25 @@
+﻿S. No.,System Type,Conditioned Status,Air flow rate (cfm),Fan Power (kW),Cooling Coil,Cooling Capacity (kBtu/hr),Cooling Efficiency (EIR),Heating Coil,Heating Capacity (kBtu/hr),Heating Efficiency (EIR)
+1,SZRH,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+2,PSZ,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+3,SZCI,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+4,VAVS,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+5,PIU,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+6,CBVAV,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+7,RHFS,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+8,EVAP-COOL,Yes,SVA System,SVA System,NA,NA,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+9,MZS,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+10,DDS,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+11,PMZS,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+12,FC,Yes,SVA Zone,SVA Zone,ChW,SVA Zone,NA,HW / Electric / HP / Furnace,SVA Zone,SVA System
+13,IU,Yes,SVA System,SVA System,ChW,SVA System,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+14,FPH,Yes,NA,NA,NA,NA,NA,HW / Electric / HP / Furnace,SVA Zone,SVA System
+15,PTAC,Yes,SVA Zone,SVA Zone,DX,SVA Zone,SVA System,HW / Electric / HP / Furnace,SVA Zone,SVA System
+16,HP,Yes,SVA Zone,SVA Zone,DX,SVA Zone,SVA System,HW / Electric / HP / Furnace,SVA Zone,SVA System
+17,HVSYS,Yes,SVA System,SVA System,NA,NA,NA,HW / Electric / HP / Furnace,SVA System,SVA System
+18,PVAVS,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+19,PVVT,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+20,UHT,Yes,SVA Zone,SVA Zone,NA,NA,NA,HW / Electric / HP / Furnace,SVA Zone,SVA System
+21,UVT,Yes,SVA Zone,SVA Zone,NA,NA,NA,HW / Electric / HP / Furnace,SVA Zone,SVA System
+22,RESYS,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+23,RESVVT,Yes,SVA System,SVA System,DX,SVA System,SVA System,HW / Electric / HP / Furnace,SVA System,SVA System
+24,SUM,No,NA,NA,NA,NA,NA,NA,NA,NA
