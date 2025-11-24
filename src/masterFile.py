@@ -502,6 +502,7 @@ def get_all_calculated_values(combined_data, inputPath):
         svafiles = gb.glob(os.path.join(inputPath, f'{path}_sva.csv'), recursive=True)
         psefiles = gb.glob(os.path.join(inputPath, f'{path}_pse.csv'), recursive=True)
         shgcfiles = gb.glob(os.path.join(inputPath, f'{path}_shgc.csv'), recursive=True)
+        lvcfiles = gb.glob(os.path.join(inputPath, f'{path}_lvc.csv'), recursive=True)
 
         # inpfile = gb.glob(os.path.join(inputPath, f'{path}.inp'), recursive=True)
         # areaCond, areaUncond, agarea, bgarea = getCondUncondArea(inpfile)
@@ -511,36 +512,29 @@ def get_all_calculated_values(combined_data, inputPath):
         # FTBelow.append(bgarea)
 
         if(lvbfiles):
-            #get lvb file data
             print("Getting lvb data")
         else:
             print("lvb section missing")
         if(lvdfiles):
-            #get lvd file data
             print("Getting lvd data")
         else:
             print("lvd section missing")
         if (zonefiles):
-            # get zone file data
             print("Getting zone data")
         else:
             print("zone section missing")
-
         if (shgcfiles):
-            # get zone file data
             print("Getting shgcfiles data")
-            shgc.append(get_shgc_data(shgcfiles[0]))
-            # print("shgc" + str(shgc))
+            # shgc.append(get_shgc_data(shgcfiles[0]))
         else:
             print("shgcfiles section missing")
-        
-        
-        
-
-
+        if(lvcfiles):
+            print("Getting lvcfiles data")
+        else:
+            print("lvc data missing")
         
         # iterate in each csvfiles variables at a time using zip function
-        for lvbfile, lvdfile, zonefile, summary, lscfile, bepufile, svafile, psefile, shgcfile in zip(lvbfiles, lvdfiles, zonefiles, lvd_summary, lscfiles, bepufiles, svafiles, psefiles, shgcfiles):
+        for lvbfile, lvdfile, zonefile, summary, lscfile, bepufile, svafile, psefile, shgcfile, lvcfile in zip(lvbfiles, lvdfiles, zonefiles, lvd_summary, lscfiles, bepufiles, svafiles, psefiles, shgcfiles, lvcfiles):
             # store all csvs info. in dataframe
             lvb_data = pd.read_csv(lvbfile)
             lvd_data = pd.read_csv(lvdfile)
@@ -550,14 +544,18 @@ def get_all_calculated_values(combined_data, inputPath):
             bepu_data = pd.read_csv(bepufile)
             sva_data = pd.read_csv(svafile)
             pse_data = pd.read_csv(psefile)
+            lvc_data = pd.read_csv(lvcfile)
             
             #exit()
-
+            lvc_data["Effective_Area"] = lvc_data["MULTIPLIER"] * lvc_data["GLASS AREA (SQFT)"]
+            lvc_data["Weighted_Shading"] = lvc_data["MULTIPLIER"] * lvc_data["GLASS AREA (SQFT)"] * lvc_data["GLASS SHADING COEFF"]
+            total_area = lvc_data["Effective_Area"].sum()
+            weighted_avg_shading = lvc_data["Weighted_Shading"].sum() / total_area
+            # st.write(weighted_avg_shading)
+            shgc.append(weighted_avg_shading)
             LscVal.append(lsc_data) # all column of lsc_csv in combined_data.
             Totalenergy = bepu_data['TOTAL-BEPU'].sum()
             EnergyOutcome.append(Totalenergy)
-
-            
 
             index_value = summary_data[summary_data['AZIMUTH'] == 'ALL WALLS'].index[0]
             output_value = summary_data.loc[index_value, 'WINDOW+WALL(AREA)(SQFT)']
@@ -735,7 +733,7 @@ def get_all_calculated_values(combined_data, inputPath):
     # Reset the indexes of all the DataFrames
     result.reset_index(drop=True, inplace=True)
     print("\nAll CSVs are generated in the respective folder!")
-    st.write(result)
+    # st.write(result)
     return result
 
     # except Exception as e:

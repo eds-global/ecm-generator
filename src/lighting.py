@@ -3,6 +3,11 @@ import pandas as pd
 import re
 
 def updateLPD(inp_data, light): 
+    # --- Turn OFF DAYLIGHTING if YES ---
+    for i, line in enumerate(inp_data):
+        if "DAYLIGHTING" in line and "= YES" in line:
+            inp_data[i] = re.sub(r'=\s*YES', '= NO', line)
+
     if light == 0:
         return ''.join(inp_data)
 
@@ -28,6 +33,21 @@ def updateLPD(inp_data, light):
             param_value = float(match.group(2))
             global_params[param_name] = param_value
 
+    # --- Preprocess: Merge lines where LIGHTING-W/AREA and next line start with {, #, or PA ---
+    merged_data = []
+    i = 0
+    while i < len(inp_data):
+        line = inp_data[i]
+        if "LIGHTING-W/AREA" in line and i + 1 < len(inp_data):
+            next_line = inp_data[i + 1].lstrip()
+            if next_line.startswith(("{", "#", "PA")):
+                # Merge next line into current line
+                line = line.rstrip("\n") + " " + next_line
+                i += 1  # Skip the next line
+        merged_data.append(line)
+        i += 1
+    inp_data = merged_data
+
     # --- Locate SPACE Section ---
     start_index, end_index = None, None
     for i, line in enumerate(inp_data):
@@ -43,25 +63,25 @@ def updateLPD(inp_data, light):
     if start_index is None or end_index is None:
         raise ValueError("Could not find SPACE section markers in INP file.")
 
+    # --- Modify LIGHTING-W/AREA values ---
     modified_inp = inp_data.copy()
     for i in range(start_index, end_index):
         if "LIGHTING-W/AREA" in modified_inp[i]:
             line = modified_inp[i]
             
             # Extract value inside parentheses
-            match = re.search(r'\(\s*([^)]*)\s*\)', line)  # tolerate missing ')'
+            match = re.search(r'\(\s*([^)]*)\s*\)', line)
             if not match:
                 continue
             cur_val_str = match.group(1).strip()
 
-            # Remove braces if present
-            cur_val_str = cur_val_str.strip("{} ").rstrip(")")  # strip extra ) if dangling
+            cur_val_str = cur_val_str.strip("{} ").rstrip(")")
 
             # Case 1: direct numeric value
             try:
                 cur_val = float(cur_val_str)
             except ValueError:
-                # Case 2: parameter reference (with or without #, with or without closing ))
+                # Case 2: parameter reference
                 param_match = re.match(r'#?PA\("([^"]+)"', cur_val_str)
                 if param_match:
                     param_name = param_match.group(1).strip()
@@ -71,10 +91,7 @@ def updateLPD(inp_data, light):
                 else:
                     raise ValueError(f"Unexpected value format for LIGHTING-W/AREA: {cur_val_str}")
             
-            # Apply formula
             new_val = cur_val * (1 - percent)
-
-            # Replace with numeric value
             modified_inp[i] = f"   LIGHTING-W/AREA  = ( {new_val:.2f} )\n"
 
     return ''.join(modified_inp)

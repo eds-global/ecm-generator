@@ -53,7 +53,7 @@ def get_locInfo(inputPath, location):
     # The LEFT JOIN keyword returns all records from the left table (combined_data), and the 
     # matching records from the right table (database).
     # combined_data = pd.merge(combined_data, database, left_on='Location', right_on='Location', how='left')
-    st.write(combined_data)
+    # st.write(combined_data)
     #print(database)
     
     # # add new column as latitude and longitude and taking 'Longi_unit' and 'Lati_unit' after value. like- 17.2N

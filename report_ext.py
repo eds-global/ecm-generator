@@ -2,7 +2,7 @@ import os
 import glob as gb
 import pandas as pd
 import shutil
-from src import lv_b, ls_c, lv_d, pv_a_loop, sv_a, beps, bepu, lvd_summary, sva_zone, locationInfo, masterFile, sva_sys_type, pv_a_pump, pv_a_heater, pv_a_equip, pv_a_tower, ps_e, inp_shgc
+from src import lv_b, ls_c, lv_c, lv_d, pv_a_loop, sv_a, beps, bepu, lvd_summary, sva_zone, locationInfo, masterFile, sva_sys_type, pv_a_pump, pv_a_heater, pv_a_equip, pv_a_tower, ps_e, inp_shgc
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -200,13 +200,13 @@ def get_files_for_data_extraction(output_path, log_file_path, new_batch_id, loca
             get_report_and_save(pv_a_tower.get_PVA_Tower_report, sim_file_path, 'pva_tower', output_path)
             get_report_and_save(ps_e.get_PSE_report, sim_file_path, 'pse', output_path)
             get_report_and_save(lv_b.get_LVB_report, sim_file_path, 'lvb', output_path)
+            get_report_and_save(lv_c.get_LVC_report, sim_file_path, 'lvc', output_path)
         except Exception as e:
             print(f"Skipping!!")
         
         #getting data from inp file
         try:
             name = os.path.basename(inp_file)
-            
             get_report_and_save(inp_shgc.get_SHGC_report, inp_file_path, 'shgc', output_path)
         except Exception as e:
             print(f"Skipping INP!!")
@@ -214,7 +214,7 @@ def get_files_for_data_extraction(output_path, log_file_path, new_batch_id, loca
     print("extraction complete")
 
     combined_data = masterFile.get_all_calculated_values(locationInfo.get_locInfo(output_path, user_input), output_path)
-    st.write(combined_data)
+    # st.write(combined_data)
     # combined_data["ProjectName"] = user_nm
     # combined_data["Location"] = user_input.title()
     # combined_data = combined_data.drop(columns=["ProjectCode", "ProjectTypology"])

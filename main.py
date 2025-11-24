@@ -83,7 +83,7 @@ def resource_path(relative_path):
 
 def remove_utility(inp_data):
     start_marker = "Utility Rates"
-    end_marker = "$ **"
+    end_marker = "Output Reporting"
 
     start_index, end_index = None, None
 
@@ -96,7 +96,7 @@ def remove_utility(inp_data):
     if start_index is not None:
         for i, line in enumerate(inp_data[start_index:], start=start_index):
             if end_marker in line:
-                end_index = i - 2
+                end_index = i - 3
                 break
 
     if start_index is None or end_index is None:
@@ -230,20 +230,22 @@ csv_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
 weather_df = pd.read_csv(csv_path)
 db_path = resource_path(os.path.join("database", "AllData.xlsx"))
 output_csv = resource_path(os.path.join("database", "Randomized_Sheet.xlsx"))
+location_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+location = pd.read_csv(location_path)
+locations = sorted(location['Sim_location'].unique())
 updated_df = pd.read_excel(output_csv)
-updated_df["Wall_Roof_Glazing_WWR_Orient_Light_Equip"] = (
-updated_df["Wall"].astype(str) + "_" +
-updated_df["Roof"].astype(str) + "_" +
-updated_df["Glazing"].astype(str) + "_" +
-updated_df["WWR"].astype(str) + "_" +
-updated_df["Orient"].astype(str) + "_" +
-updated_df["Light"].astype(str) + "_" +
-updated_df["Equip"].astype(str)
-)
 
+updated_df["Wall_Roof_Glazing_WWR_Orient_Light_Equip"] = (
+    updated_df["Wall"].astype(str) + "_" +
+    updated_df["Roof"].astype(str) + "_" +
+    updated_df["Glazing"].astype(str) + "_" +
+    updated_df["WWR"].astype(str) + "_" +
+    updated_df["Orient"].astype(str) + "_" +
+    updated_df["Light"].astype(str) + "_" +
+    updated_df["Equip"].astype(str)
+)
 # Inputs
-col1, col2, col3 = st.columns(3)
-locations = ["Ahemdabad", "Akola", "Bangalore", "Bhubneshwar", "Chennai", "Dehradun", "Goa", "Guwahati", "Hyderabad", "Indore", "Jaipur", "Jaisalmer","Kolkata", "Lucknow", "Mumbai", "New Delhi", "Nagpur", "Pune", "Rajkot", "Raipur", "Shillong", "Sholapur", "Srinagar", "Surat", "Tiruchirapalli","Vishakhapatnam"]
+col1, col2, col3, col4 = st.columns(4)
 st.markdown("""
     <style>
     div[data-testid="stFileUploader"] section {
@@ -255,13 +257,82 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+# --- NEW: handle both Country and Location ---
+if "Country" in location.columns:
+    # If CSV already has Country column
+    countries = sorted(location["Country"].unique().tolist())
+else:
+    # If your current CSV has only Indian cities — default to India
+    countries = ["India"]
 with col1:
     project_name = st.text_input("📝 Project Name", placeholder="Enter project name")
     project_name_clean = project_name.replace(" ", "_")
     user_nm = project_name_clean
+    if project_name_clean:
+        parent_dir = os.path.dirname(os.getcwd())
+        batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs")
+        project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+        # Check if project folder already exists
+        if os.path.exists(project_folder):
+            st.warning("⚠️ Project name already exists! Please select another name.")
+        #     st.stop()
 with col2:
-    user_input = st.selectbox("🌍 Select Location", locations).strip().lower()
-with col3:
+    # Add "Other" option to countries
+    countries.append("Custom Weather")
+    selected_country = st.selectbox("🌎 Select Country", countries)
+
+    # Filter and sort locations for the selected country (if not "Other")
+    if selected_country != "Custom Weather":
+        if "Country" in location.columns:
+            filtered_locations = (
+                location[location["Country"] == selected_country]["Sim_location"]
+                .dropna()
+                .unique()
+                .tolist()
+            )
+            filtered_locations = sorted(filtered_locations)
+        else:
+            filtered_locations = sorted(location["Sim_location"].dropna().tolist())
+    else:
+        filtered_locations = []  # No locations for "Other"
+
+bin_name = ""
+# Only show City dropdown if not "Other"
+if selected_country != "Custom Weather":
+    with col3:
+        user_input = st.selectbox("🌍 Select City", filtered_locations).lower()
+else:
+    with col3:
+        user_input = "Other-City"
+        # When "Other" is selected, show .bin upload option
+        uploaded_bin = st.file_uploader("📤 Upload .bin file", type=["bin"])
+        # st.markdown(f"<span style='color:red;'>Remember that uploaded file in your C:/doe22/weather</span>", unsafe_allow_html=True)
+        if uploaded_bin is not None:
+            # Define the save folder path
+            save_folder = r"C:\doe22\weather"
+            os.makedirs(save_folder, exist_ok=True)
+
+            # Original filename
+            original_name = uploaded_bin.name
+            name_without_ext, ext = os.path.splitext(original_name)
+
+            # Default save path
+            save_path = os.path.join(save_folder, original_name)
+
+            # Check if file already exists → create copy versions
+            counter = 1
+            while os.path.exists(save_path):
+                new_name = f"{name_without_ext}_copy{counter}{ext}"
+                save_path = os.path.join(save_folder, new_name)
+                counter += 1
+
+            # Save the file
+            with open(save_path, "wb") as f:
+                f.write(uploaded_bin.getbuffer())
+            bin_name = name_without_ext
+            # st.success(f"File saved as: {os.path.basename(save_path)}")
+        
+with col4:
     uploaded_file = st.file_uploader("📤 Upload eQUEST INP file", type=["inp"])
     if uploaded_file:
         # st.write(uploaded_file)
@@ -287,23 +358,33 @@ with col3:
         inp_folder = output_inp_folder
 
         project_folder = os.path.join(batch_outputs_dir, project_name_clean)
-        # Check if project folder already exists
-        if os.path.exists(project_folder):
-            st.warning("⚠️ Project already exists! Please select another name.")
-            st.stop()
         
 run_cnt = 1
 location_id, weather_path = "", ""
-matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+if user_input != "Other-City":
+    matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+    # st.write(matched_row)
+else:
+    matched_row = pd.DataFrame()
+
 if not matched_row.empty:
     location_id = matched_row.iloc[0]['Location_ID']
     weather_path = matched_row.iloc[0]['Weather_file']
 elif user_input:
-    st.error("❌ Location not found.")
-
+    weather_path = bin_name
+    # st.error("❌ Location not found.")
+# st.write(weather_path)
 # Start simulation
-# if st.button("Simulate 🚀") and uploaded_file is not None:
 if st.button("Simulate 🚀"):
+    if uploaded_file is None:
+        st.warning("⚠️ Please Upload .INP File!")
+        st.stop()
+    if bin_name is None:
+        st.warning("⚠️ Please Upload .BIN File!")
+        st.stop()
+    if not project_name_clean:
+        st.warning("⚠️ Please enter a project name.")
+        st.stop()
     with st.spinner("⚡ Processing... This may take a few minutes."):
         os.makedirs(output_inp_folder, exist_ok=True)
         new_batch_id = f"{int(time.time())}"  # unique ID
@@ -329,7 +410,6 @@ if st.button("Simulate 🚀"):
 
             # Apply modifications
             inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
-
             # inp_content = orient.updateOrientation(inp_content, row["Orient"])
             inp_content = lighting.updateLPD(inp_content, row['Light'])
             # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
@@ -350,12 +430,13 @@ if st.button("Simulate 🚀"):
                 modified_files.append(new_inp_name)
             else:
                 st.write("No Exterior-Wall Exists!")
-
+    
         simulate_files = []
         # Copy and run batch script
         if uploaded_file is None:
             st.error("Please upload an INP file before starting the simulation.")
         else:
+            st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
             script_dir = os.path.dirname(os.path.abspath(__file__))
             shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
             inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
@@ -379,7 +460,7 @@ if st.button("Simulate 🚀"):
         success_count = (logFile["Status"] == "Success").sum()
         success_rate = (success_count / total_sims) * 100 if total_sims > 0 else 0
 
-    st.write(combined_Data)
+    # st.write(combined_Data)
     combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
     combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
     wall_to_rvalue = {
@@ -1247,15 +1328,25 @@ if st.button("Simulate 🚀"):
         color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
 
         # Normalize U-value for marker size
-        u_min = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].min()
-        u_max = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].max()
+        u_col = "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"
+        u_min = df[u_col].min(skipna=True)
+        u_max = df[u_col].max(skipna=True)
         size_min = 8
         size_max = 25
 
+        # Warn if NaN U-values found
+        if df[u_col].isna().any():
+            print("⚠️ Warning: Missing U-values found. Using minimum U-value for those entries.")
+            df[u_col] = df[u_col].fillna(u_min)
+
         def u_to_size(u):
+            # Handle identical or NaN min/max cases
+            if pd.isna(u_min) or pd.isna(u_max) or u_min == u_max or pd.isna(u):
+                return size_min  # fallback default
             # Scale U-value to marker size
             return size_min + (u - u_min) / (u_max - u_min) * (size_max - size_min)
 
+        # Create Plotly figure
         fig = go.Figure()
 
         for variable in unique_vars:
@@ -1268,21 +1359,15 @@ if st.button("Simulate 🚀"):
                 x=ecm_df["X"],
                 y=ecm_df["Energy_Outcome(KWH)"],
                 mode="markers",
-                name=f"ECM",
+                name="ECM",
                 marker=dict(
-                    size=ecm_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    size=ecm_df[u_col].apply(u_to_size),
                     color="blue",
                     line=dict(width=1, color="blue"),
                     symbol="circle",
                     opacity=0.9
                 ),
-                # customdata=ecm_df[["Energy_human", "PercentChangeAdj"]].values,
-                customdata=ecm_df[["Energy_human", "PercentChangeAdj", "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"]].values,
-                # hovertemplate=(
-                #     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
-                #     "<b>Energy Use</b>: %{customdata[0]}<br>"
-                #     # "<b>% Change from As Designed</b>: %{customdata[1]:.0f}%<extra></extra>"
-                # )
+                customdata=ecm_df[["Energy_human", "PercentChangeAdj", u_col]].values,
                 hovertemplate=(
                     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
                     "<b>Energy Use</b>: %{customdata[0]}<br>"
@@ -1296,16 +1381,15 @@ if st.button("Simulate 🚀"):
                 x=ad_df["X"],
                 y=ad_df["Energy_Outcome(KWH)"],
                 mode="markers",
-                name=f"As Designed",
+                name="As Designed",
                 marker=dict(
-                    size=ad_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    size=ad_df[u_col].apply(u_to_size),
                     color="red",
                     line=dict(width=2, color="red"),
                     symbol="circle",
                     opacity=0.95
                 ),
-                # customdata=ad_df[["Energy_human", "PercentChangeAdj"]].values,
-                customdata=ad_df[["Energy_human", "PercentChangeAdj", "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"]].values,
+                customdata=ad_df[["Energy_human", "PercentChangeAdj", u_col]].values,
                 hovertemplate=(
                     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
                     "<b>Energy Use</b>: %{customdata[0]}<br>"
@@ -1313,7 +1397,9 @@ if st.button("Simulate 🚀"):
                 )
             ))
 
+        # Layout formatting
         fig.update_layout(
+            title=title,
             xaxis_title=x_label,
             yaxis_title="Energy Use (kWh, K=Thousand, M=Million, B=Billion)",
             yaxis=dict(tickformat="~s"),
@@ -1328,7 +1414,7 @@ if st.button("Simulate 🚀"):
         )
 
         return fig
-    
+
     def make_savings_window_matplotlib(df, title="Energy Savings vs SC", x_label="Shading Coefficient (SC)"):
         df = df.copy()
 
@@ -1514,9 +1600,9 @@ if st.button("Simulate 🚀"):
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(make_combined_scatter(glazing_df, "Energy Use vs Shading coefficient (SC)", "Shading coefficient (SC)"), use_container_width=True)
+        st.plotly_chart(make_combined_scatter(glazing_df, "Energy Use vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
     with col2:
-        st.plotly_chart(make_savings_sc_barplot_matplotlib(glazing_df, "EUI Savings vs Shading coefficient (SC)", "Shading coefficient (SC)"), use_container_width=True)
+        st.plotly_chart(make_savings_sc_barplot_matplotlib(glazing_df, "EUI Savings vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
     colN1, _ = st.columns(2)
     with colN1:
         st.markdown("""**Note:**  *Size of Points represented by U-Value (BTU/hr·ft²·F).*""", unsafe_allow_html=True)
@@ -1805,7 +1891,6 @@ if st.button("Simulate 🚀"):
             # Optional: show all columns
             pd.set_option('display.max_columns', None)
             st.write(variable_df)
-
     
     # with colC:
     #     with st.expander("Log File"):

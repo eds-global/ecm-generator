@@ -1,28 +1,1067 @@
-﻿Location_ID,Sim_location,Weather_file
-L1,New Delhi,IND_NewDelhi.421820_ISHRAE_EDS
-L2,Ahemdabad,IND_Ahmedabad.426470_ISHRAE_EDS
-L3,Bangalore,IND_Bangalore.432950_ISHRAE_EDS
-L4,Chennai,IND_Chennai.432790_ISHRAE_EDS
-L5,Hyderabad,IND_Hyderabad.431280_ISHRAE_EDS
-L6,Jaisalmer,IND_Jaisalmer.423280_ISHRAE_EDS
-L7,Kolkata,IND_Kolkata.428090_ISHRAE_EDS
-L8,Srinagar,IND_Srinagar.420270_ISHRAE2014
-L9,Mumbai,IND_Mumbai.430030_ISHRAE_EDS
-L10,Lucknow,IND_Lucknow.423690_ISHRAE_EDS
-L11,Pune,IND_Pune.430630_ISHRAE_EDS
-L12,Sholapur,IND_Sholapur.431170_ISHRAE_EDS
-L13,Tiruchirappalli,IND_Tiruchirapalli.433440_ISHRAE_EDS
-L14,Akola,IND_Akola.429340_ISHRAE_EDS
-L15,Jaipur,IND_Jaipur.423480_ISHRAE_EDS
-L16,Indore,IND_Indore.427540_ISHRAE_EDS
-L17,Guwahati,IND_Guwahati.424100_ISHRAE_EDS
-L18,Dehradun,IND_Dehradun.421110_ISHRAE_EDS
-L19,Bhubneshwar,IND_Bhubneshwar.429710_ISHRAE_EDS
-L20,Surat,IND_Surat.428400_ISHRAE_EDS
-L21,Raipur,IND_Raipur.428750_ISHRAE_EDS
-L22,Nagpur,IND_Nagpur.428670_ISHRAE_EDS
-L23,Vishakhapatnam,IND_Vishakhapatnam.431500_ISHRAE_EDS
-L24,Shillong,IND_Shillong.425160_ISHRAE_EDS
-L25,Rajkot,IND_Rajkot.427370_ISHRAE_EDS
-L26,Ranchi,IND_Ranchi.427010_ISHRAE_EDS
-L27,Goa,IND_Goa.Panjim.431920_IWEC_EDS
+﻿Location_ID,Country,Sim_location,Weather_file
+L1,India,New Delhi,IND_NewDelhi.421820_ISHRAE_EDS
+L2,India,Ahmedabad,IND_Ahmedabad.426470_ISHRAE_EDS
+L3,India,Bengaluru,IND_Bangalore.432950_ISHRAE_EDS
+L4,India,Chennai,IND_Chennai.432790_ISHRAE_EDS
+L5,India,Hyderabad,IND_Hyderabad.431280_ISHRAE_EDS
+L6,India,Jaisalmer,IND_Jaisalmer.423280_ISHRAE_EDS
+L7,India,Kolkata,IND_Kolkata.428090_ISHRAE_EDS
+L8,India,Srinagar,IND_Srinagar.420270_ISHRAE2014
+L9,India,Mumbai,IND_Mumbai.430030_ISHRAE_EDS
+L10,India,Lucknow,IND_Lucknow.423690_ISHRAE_EDS
+L11,India,Pune,IND_Pune.430630_ISHRAE_EDS
+L12,India,Sholapur,IND_Sholapur.431170_ISHRAE_EDS
+L13,India,Tiruchirappalli,IND_Tiruchirapalli.433440_ISHRAE_EDS
+L14,India,Akola,IND_Akola.429340_ISHRAE_EDS
+L15,India,Jaipur,IND_Jaipur.423480_ISHRAE_EDS
+L16,India,Indore,IND_Indore.427540_ISHRAE_EDS
+L17,India,Guwahati,IND_Guwahati.424100_ISHRAE_EDS
+L18,India,Dehradun,IND_Dehradun.421110_ISHRAE_EDS
+L19,India,Bhubaneswar,IND_Bhubneshwar.429710_ISHRAE_EDS
+L20,India,Surat,IND_Surat.428400_ISHRAE_EDS
+L21,India,Raipur,IND_Raipur.428750_ISHRAE_EDS
+L22,India,Nagpur,IND_Nagpur.428670_ISHRAE_EDS
+L23,India,Visakhapatnam,IND_Vishakhapatnam.431500_ISHRAE_EDS
+L24,India,Shillong,IND_Shillong.425160_ISHRAE_EDS
+L25,India,Rajkot,IND_Rajkot.427370_ISHRAE_EDS
+L26,India,Ranchi,IND_Ranchi.427010_ISHRAE_EDS
+L27,India,Goa,IND_Goa.Panjim.431920_IWEC_EDS
+L28,USA,Atlanta,USA_GA_Atlanta_TMY2
+L29,USA,Boston,USA_MA_Boston_TMY2
+L30,USA,Chicago,USA_IL_Chicago_TMY2
+L31,USA,Dallas,USA_TX_Dallas_TMY2
+L32,USA,Denver,USA_CO_Denver_TMY2
+L33,USA,Honolulu,USA_HI_Honolulu_TMY2
+L34,USA,Houston,USA_TX_Houston_TMY2
+L35,USA,Las Vegas,USA_NV_Las_Vegas_TMY2
+L36,USA,Los Angeles,USA_CA_Los_Angeles_TMY2
+L37,USA,Miami,USA_FL_Miami_TMY2
+L38,USA,Minneapolis,USA_MN_Minneapolis_TMY2
+L39,USA,New York,USA_NY_New_York_TMY2
+L40,USA,Philadelphia,USA_PA_Philadelphia_TMY2
+L41,USA,Phoenix,USA_AZ_Phoenix_TMY2
+L42,USA,San Diego,USA_CA_San_Diego_TMY2
+L43,USA,San Francisco,USA_CA_San_Francisco_TMY2
+L44,USA,Seattle,USA_WA_Seattle_TMY2
+L45,USA,St. Louis,USA_MO_St_Louis_TMY2
+L46,USA,Washington DC,USA_DC_Washington_TMY2
+L47,USA,Adak NAS,AK_Adak_NAS
+L48,USA,Ambler,AK_Ambler
+L49,USA,Anaktuvuk Pass,AK_Anaktuvuk_Pass
+L50,USA,Anchorage Elmendorf,AK_Anchorage_Elmendorf
+L51,USA,Anchorage Intl AP,AK_Anchorage_Intl_AP
+L52,USA,Anchorage Merrill Fld,AK_Anchorage_Merrill_Fld
+L53,USA,Aniak Airport,AK_Aniak_Airport
+L54,USA,Annette Island AP,AK_Annette_Island_AP
+L55,USA,Anvik,AK_Anvik
+L56,USA,Barrow W Post-W Rogers,AK_Barrow_W_Post-W_Rogers
+L57,USA,Bethel Airport,AK_Bethel_Airport
+L58,USA,Bettles Field,AK_Bettles_Field
+L59,USA,Big Delta Allen AAF,AK_Big_Delta_Allen_AAF
+L60,USA,Big River Lake,AK_Big_River_Lake
+L61,USA,Birchwood,AK_Birchwood
+L62,USA,Chulitna,AK_Chulitna
+L63,USA,Cold Bay Arpt,AK_Cold_Bay_Arpt
+L64,USA,Cordova,AK_Cordova
+L65,USA,Deadhorse,AK_Deadhorse
+L66,USA,Dillingham (AMOS),AK_Dillingham_(AMOS)
+L67,USA,Dutch Harbor,AK_Dutch_Harbor
+L68,USA,Emmonak,AK_Emmonak
+L69,USA,Fairbanks Eielson A,AK_Fairbanks_Eielson_A
+L70,USA,Fairbanks Intl Arpt,AK_Fairbanks_Intl_Arpt
+L71,USA,Fort Yukon,AK_Fort_Yukon
+L72,USA,Gambell,AK_Gambell
+L73,USA,Gulkana Intermediate,AK_Gulkana_Intermediate
+L74,USA,Gustavus,AK_Gustavus
+L75,USA,Hayes River,AK_Hayes_River
+L76,USA,Healy River Airport,AK_Healy_River_Airport
+L77,USA,Homer Arpt,AK_Homer_Arpt
+L78,USA,Hoonah,AK_Hoonah
+L79,USA,Hooper Bay,AK_Hooper_Bay
+L80,USA,Huslia,AK_Huslia
+L81,USA,Hydaburg Seaplane,AK_Hydaburg_Seaplane
+L82,USA,Iliamna Arpt,AK_Iliamna_Arpt
+L83,USA,Juneau Intl Arpt,AK_Juneau_Intl_Arpt
+L84,USA,Kake Seaplane Base,AK_Kake_Seaplane_Base
+L85,USA,Kenai Municipal AP,AK_Kenai_Municipal_AP
+L86,USA,Ketchikan Intl AP,AK_Ketchikan_Intl_AP
+L87,USA,King Salmon Arpt,AK_King_Salmon_Arpt
+L88,USA,Kodiak Airport,AK_Kodiak_Airport
+L89,USA,Kotzebue Ralph Wein Me,AK_Kotzebue_Ralph_Wein_Me
+L90,USA,Lake Hood Seaplane,AK_Lake_Hood_Seaplane
+L91,USA,Mcgrath Arpt,AK_Mcgrath_Arpt
+L92,USA,Mekoryuk,AK_Mekoryuk
+L93,USA,Middleton Island Aut,AK_Middleton_Island_Aut
+L94,USA,Minchumina,AK_Minchumina
+L95,USA,Nenana Municipal AP,AK_Nenana_Municipal_AP
+L96,USA,Nome Municipal Arpt,AK_Nome_Municipal_Arpt
+L97,USA,Northway Airport,AK_Northway_Airport
+L98,USA,Palmer Municipal,AK_Palmer_Municipal
+L99,USA,Petersburg,AK_Petersburg
+L100,USA,Point Hope (AWOS),AK_Point_Hope_(AWOS)
+L101,USA,Port Heiden,AK_Port_Heiden
+L102,USA,Saint Mary%60S (AWOS),AK_Saint_Mary%60S_(AWOS)
+L103,USA,Sand Point,AK_Sand_Point
+L104,USA,Savoonga,AK_Savoonga
+L105,USA,Selawik,AK_Selawik
+L106,USA,Seward,AK_Seward
+L107,USA,Shemya AFB,AK_Shemya_AFB
+L108,USA,Shishmaref (AWOS),AK_Shishmaref_(AWOS)
+L109,USA,Sitka Japonski AP,AK_Sitka_Japonski_AP
+L110,USA,Skagway Airport,AK_Skagway_Airport
+L111,USA,Sleetmute,AK_Sleetmute
+L112,USA,Soldotna,AK_Soldotna
+L113,USA,St Paul Island Arpt,AK_St_Paul_Island_Arpt
+L114,USA,Talkeetna State Arpt,AK_Talkeetna_State_Arpt
+L115,USA,Tanana Ralph M Calhoun,AK_Tanana_Ralph_M_Calhoun
+L116,USA,Togiac Village AWOS,AK_Togiac_Village_AWOS
+L117,USA,Unalakleet Field,AK_Unalakleet_Field
+L118,USA,Valdez Pioneer Field,AK_Valdez_Pioneer_Field
+L119,USA,Valdez Wso,AK_Valdez_Wso
+L120,USA,Whittier,AK_Whittier
+L121,USA,Wrangell,AK_Wrangell
+L122,USA,Yakutat State Arpt,AK_Yakutat_State_Arpt
+L123,USA,Anniston Metropolitan,AL_Anniston_Metropolitan
+L124,USA,Auburn-Opelika Apt,AL_Auburn-Opelika_Apt
+L125,USA,Birmingham Municipal A,AL_Birmingham_Municipal_A
+L126,USA,Cairns Field Fort Ruck,AL_Cairns_Field_Fort_Ruck
+L127,USA,Dothan Municipal AP,AL_Dothan_Municipal_AP
+L128,USA,Gadsen Muni (AWOS),AL_Gadsen_Muni_(AWOS)
+L129,USA,Huntsville Intl Jones,AL_Huntsville_Intl_Jones
+L130,USA,Maxwell AFB,AL_Maxwell_AFB
+L131,USA,Mobile Downtown AP,AL_Mobile_Downtown_AP
+L132,USA,Mobile Regional AP,AL_Mobile_Regional_AP
+L133,USA,Montgomery Dannelly Fi,AL_Montgomery_Dannelly_Fi
+L134,USA,Muscle Shoals Regional,AL_Muscle_Shoals_Regional
+L135,USA,Troy Af,AL_Troy_Af
+L136,USA,Tuscaloosa Municipal A,AL_Tuscaloosa_Municipal_A
+L137,USA,Batesville (AWOS),AR_Batesville_(AWOS)
+L138,USA,Bentonville (AWOS),AR_Bentonville_(AWOS)
+L139,USA,El Dorado Goodwin Fiel,AR_El_Dorado_Goodwin_Fiel
+L140,USA,Fayetteville Drake Fie,AR_Fayetteville_Drake_Fie
+L141,USA,Flippin (AWOS),AR_Flippin_(AWOS)
+L142,USA,Fort Smith Regional Ap,AR_Fort_Smith_Regional_Ap
+L143,USA,Harrison Faa AP,AR_Harrison_Faa_AP
+L144,USA,Jonesboro Muni,AR_Jonesboro_Muni
+L145,USA,Little Rock AFB,AR_Little_Rock_AFB
+L146,USA,Little Rock Adams Fiel,AR_Little_Rock_Adams_Fiel
+L147,USA,Memorial Fld,AR_Memorial_Fld
+L148,USA,Pine Bluff Faa AP,AR_Pine_Bluff_Faa_AP
+L149,USA,Rogers (AWOS),AR_Rogers_(AWOS)
+L150,USA,Siloam Spring(AWOS),AR_Siloam_Spring(AWOS)
+L151,USA,Springdale Muni,AR_Springdale_Muni
+L152,USA,Stuttgart (AWOS),AR_Stuttgart_(AWOS)
+L153,USA,Texarkana Webb Field,AR_Texarkana_Webb_Field
+L154,USA,Walnut Ridge (AWOS),AR_Walnut_Ridge_(AWOS)
+L155,USA,Casa Granda (AWOS),AZ_Casa_Granda_(AWOS)
+L156,USA,Davis Monthan AFB,AZ_Davis_Monthan_AFB
+L157,USA,Deer Valley Phoenix,AZ_Deer_Valley_Phoenix
+L158,USA,Douglas Bisbee-Douglas,AZ_Douglas_Bisbee-Douglas
+L159,USA,Flagstaff Pulliam Arpt,AZ_Flagstaff_Pulliam_Arpt
+L160,USA,Grand Canyon Natl P,AZ_Grand_Canyon_Natl_P
+L161,USA,Kingman (AMOS),AZ_Kingman_(AMOS)
+L162,USA,Luke AFB,AZ_Luke_AFB
+L163,USA,Page Muni (AMOS),AZ_Page_Muni_(AMOS)
+L164,USA,Phoenix Sky Harbor Int,AZ_Phoenix_Sky_Harbor_Int
+L165,USA,Prescott Love Field,AZ_Prescott_Love_Field
+L166,USA,Safford (AMOS),AZ_Safford_(AMOS)
+L167,USA,Scottsdale Muni,AZ_Scottsdale_Muni
+L168,USA,Show Low Municipal,AZ_Show_Low_Municipal
+L169,USA,Tucson International A,AZ_Tucson_International_A
+L170,USA,Winslow Municipal AP,AZ_Winslow_Municipal_AP
+L171,USA,Yuma Intl Arpt,AZ_Yuma_Intl_Arpt
+L172,USA,Yuma MCAS,AZ_Yuma_MCAS
+L173,USA,Alturas,CA_Alturas
+L174,USA,Arcata Airport,CA_Arcata_Airport
+L175,USA,Bakersfield Meadows Fi,CA_Bakersfield_Meadows_Fi
+L176,USA,Beale AFB,CA_Beale_AFB
+L177,USA,Bishop Airport,CA_Bishop_Airport
+L178,USA,Blue Canyon AP,CA_Blue_Canyon_AP
+L179,USA,Blythe Riverside Co Ar,CA_Blythe_Riverside_Co_Ar
+L180,USA,Burbank-Glendale-Passa,CA_Burbank-Glendale-Passa
+L181,USA,Camarillo (AWOS),CA_Camarillo_(AWOS)
+L182,USA,Camp Pendleton MCAS,CA_Camp_Pendleton_MCAS
+L183,USA,Carlsbad Palomar,CA_Carlsbad_Palomar
+L184,USA,China Lake NAF,CA_China_Lake_NAF
+L185,USA,Chino Airport,CA_Chino_Airport
+L186,USA,Chula Vista Brown Fiel,CA_Chula_Vista_Brown_Fiel
+L187,USA,Concord Concord-Buchan,CA_Concord_Concord-Buchan
+L188,USA,Crescent City Faa Ai,CA_Crescent_City_Faa_Ai
+L189,USA,Daggett Barstow,CA_Daggett_Barstow
+L190,USA,Edwards AFB,CA_Edwards_AFB
+L191,USA,Fresno Yosemite Intl A,CA_Fresno_Yosemite_Intl_A
+L192,USA,Fullerton Municipal,CA_Fullerton_Municipal
+L193,USA,Hayward Air Term,CA_Hayward_Air_Term
+L194,USA,Imperial,CA_Imperial
+L195,USA,Jack Northrop Fld H,CA_Jack_Northrop_Fld_H
+L196,USA,Lancaster Gen Wm Fox F,CA_Lancaster_Gen_Wm_Fox_F
+L197,USA,Lemoore Reeves NAS,CA_Lemoore_Reeves_NAS
+L198,USA,Livermore Municipal,CA_Livermore_Municipal
+L199,USA,Lompoc (AWOS),CA_Lompoc_(AWOS)
+L200,USA,Long Beach Daugherty F,CA_Long_Beach_Daugherty_F
+L201,USA,Los Angeles Intl Arpt,CA_Los_Angeles_Intl_Arpt
+L202,USA,March AFB,CA_March_AFB
+L203,USA,Merced MacReady Fld,CA_Merced_MacReady_Fld
+L204,USA,Modesto City-County Ap,CA_Modesto_City-County_Ap
+L205,USA,Montague Siskiyou Coun,CA_Montague_Siskiyou_Coun
+L206,USA,Monterey NAF,CA_Monterey_NAF
+L207,USA,Mountain View Moffett,CA_Mountain_View_Moffett
+L208,USA,Napa Co. Airport,CA_Napa_Co._Airport
+L209,USA,Needles Airport,CA_Needles_Airport
+L210,USA,Oakland Metropolitan A,CA_Oakland_Metropolitan_A
+L211,USA,Oxnard Airport,CA_Oxnard_Airport
+L212,USA,Palm Springs Intl,CA_Palm_Springs_Intl
+L213,USA,Palm Springs Thermal A,CA_Palm_Springs_Thermal_A
+L214,USA,Palmdale Airport,CA_Palmdale_Airport
+L215,USA,Paso Robles Municipal,CA_Paso_Robles_Municipal
+L216,USA,Point Mugu Nf,CA_Point_Mugu_Nf
+L217,USA,Porterville (AWOS),CA_Porterville_(AWOS)
+L218,USA,Red Bluff Municipal Ar,CA_Red_Bluff_Municipal_Ar
+L219,USA,Redding Municipal Arpt,CA_Redding_Municipal_Arpt
+L220,USA,Riverside Muni,CA_Riverside_Muni
+L221,USA,Sacramento Executive A,CA_Sacramento_Executive_A
+L222,USA,Sacramento Metropolita,CA_Sacramento_Metropolita
+L223,USA,Salinas Municipal AP,CA_Salinas_Municipal_AP
+L224,USA,San Diego Lindbergh Fi,CA_San_Diego_Lindbergh_Fi
+L225,USA,San Diego Miramar NAS,CA_San_Diego_Miramar_NAS
+L226,USA,San Diego Montgomer,CA_San_Diego_Montgomer
+L227,USA,San Diego North Island,CA_San_Diego_North_Island
+L228,USA,San Francisco Intl AP,CA_San_Francisco_Intl_AP
+L229,USA,San Jose Intl AP,CA_San_Jose_Intl_AP
+L230,USA,San Luis Co Rgnl,CA_San_Luis_Co_Rgnl
+L231,USA,Sandberg,CA_Sandberg
+L232,USA,Santa Ana John Wayne A,CA_Santa_Ana_John_Wayne_A
+L233,USA,Santa Barbara Municipa,CA_Santa_Barbara_Municipa
+L234,USA,Santa Maria Public Arp,CA_Santa_Maria_Public_Arp
+L235,USA,Santa Monica Muni,CA_Santa_Monica_Muni
+L236,USA,Santa Rosa (AWOS),CA_Santa_Rosa_(AWOS)
+L237,USA,South Lake Tahoe,CA_South_Lake_Tahoe
+L238,USA,Stockton Metropolitan,CA_Stockton_Metropolitan
+L239,USA,Travis Field AFB,CA_Travis_Field_AFB
+L240,USA,Truckee-Tahoe,CA_Truckee-Tahoe
+L241,USA,Twentynine Palms,CA_Twentynine_Palms
+L242,USA,Ukiah Municipal AP,CA_Ukiah_Municipal_AP
+L243,USA,Van Nuys Airport,CA_Van_Nuys_Airport
+L244,USA,Visalia Muni (AWOS),CA_Visalia_Muni_(AWOS)
+L245,USA,Yuba Co,CA_Yuba_Co
+L246,USA,Akron Washington Co Ap,CO_Akron_Washington_Co_Ap
+L247,USA,Alamosa San Luis Valle,CO_Alamosa_San_Luis_Valle
+L248,USA,Aspen Pitkin Co Sar,CO_Aspen_Pitkin_Co_Sar
+L249,USA,Aurora Buckley Field A,CO_Aurora_Buckley_Field_A
+L250,USA,Broomfield Jeffco,CO_Broomfield_Jeffco
+L251,USA,Colorado Springs Muni,CO_Colorado_Springs_Muni
+L252,USA,Cortez Montezuma Co,CO_Cortez_Montezuma_Co
+L253,USA,Craig-Moffat,CO_Craig-Moffat
+L254,USA,Denver Centennial,CO_Denver_Centennial
+L255,USA,Denver Intl AP,CO_Denver_Intl_AP
+L256,USA,Durango La Plata Co,CO_Durango_La_Plata_Co
+L257,USA,Eagle County AP,CO_Eagle_County_AP
+L258,USA,Fort Collins (AWOS),CO_Fort_Collins_(AWOS)
+L259,USA,Grand Junction Walker,CO_Grand_Junction_Walker
+L260,USA,Greeley Weld (AWOS),CO_Greeley_Weld_(AWOS)
+L261,USA,Gunnison Co. (AWOS),CO_Gunnison_Co._(AWOS)
+L262,USA,Hayden Yampa (AWOS),CO_Hayden_Yampa_(AWOS)
+L263,USA,La Junta Municipal AP,CO_La_Junta_Municipal_AP
+L264,USA,Lamar Municipal,CO_Lamar_Municipal
+L265,USA,Leadville Lake Co.,CO_Leadville_Lake_Co.
+L266,USA,Limon,CO_Limon
+L267,USA,Montrose Co. Arpt,CO_Montrose_Co._Arpt
+L268,USA,Pueblo Memorial AP,CO_Pueblo_Memorial_AP
+L269,USA,Rifle Garfield Rgnl,CO_Rifle_Garfield_Rgnl
+L270,USA,Trinidad Las Animas Co,CO_Trinidad_Las_Animas_Co
+L271,USA,Bridgeport Sikorsky Me,CT_Bridgeport_Sikorsky_Me
+L272,USA,Danbury Municipal,CT_Danbury_Municipal
+L273,USA,Groton New London AP,CT_Groton_New_London_AP
+L274,USA,Hartford Bradley Intl,CT_Hartford_Bradley_Intl
+L275,USA,Hartford Brainard Fd,CT_Hartford_Brainard_Fd
+L276,USA,New Haven Tweed Airpor,CT_New_Haven_Tweed_Airpor
+L277,USA,Oxford (AWOS),CT_Oxford_(AWOS)
+L278,USA,Dover AFB,DE_Dover_AFB
+L279,USA,Wilmington New Castle,DE_Wilmington_New_Castle
+L280,USA,Crestview Bob Sikes Ap,FL_Crestview_Bob_Sikes_Ap
+L281,USA,Daytona Beach Intl AP,FL_Daytona_Beach_Intl_AP
+L282,USA,Fort Lauderdale,FL_Fort_Lauderdale
+L283,USA,Fort Lauderdale Hollyw,FL_Fort_Lauderdale_Hollyw
+L284,USA,Fort Myers Page Field,FL_Fort_Myers_Page_Field
+L285,USA,Gainesville Regional A,FL_Gainesville_Regional_A
+L286,USA,Homestead AFB,FL_Homestead_AFB
+L287,USA,Jacksonville Craig,FL_Jacksonville_Craig
+L288,USA,Jacksonville Intl AP,FL_Jacksonville_Intl_AP
+L289,USA,Jacksonville NAS,FL_Jacksonville_NAS
+L290,USA,Key West Intl Arpt,FL_Key_West_Intl_Arpt
+L291,USA,Key West NAS,FL_Key_West_NAS
+L292,USA,Lakeland Linder Rgn,FL_Lakeland_Linder_Rgn
+L293,USA,MacDill AFB,FL_MacDill_AFB
+L294,USA,Marathon Airport,FL_Marathon_Airport
+L295,USA,Mayport Ns,FL_Mayport_Ns
+L296,USA,Melbourne Regional AP,FL_Melbourne_Regional_AP
+L297,USA,Miami Intl AP,FL_Miami_Intl_AP
+L298,USA,Miami Kendall-Tamia,FL_Miami_Kendall-Tamia
+L299,USA,Miami Opa Locka,FL_Miami_Opa_Locka
+L300,USA,Naples Municipal,FL_Naples_Municipal
+L301,USA,Nasa Shuttle Fclty,FL_Nasa_Shuttle_Fclty
+L302,USA,Ocala Muni (AWOS),FL_Ocala_Muni_(AWOS)
+L303,USA,Orlando Executive AP,FL_Orlando_Executive_AP
+L304,USA,Orlando Intl Arpt,FL_Orlando_Intl_Arpt
+L305,USA,Orlando Sanford AP,FL_Orlando_Sanford_AP
+L306,USA,Panama City Bay Co,FL_Panama_City_Bay_Co
+L307,USA,Pensacola Forest Sherm,FL_Pensacola_Forest_Sherm
+L308,USA,Pensacola Regional AP,FL_Pensacola_Regional_AP
+L309,USA,Sarasota Bradenton,FL_Sarasota_Bradenton
+L310,USA,Southwest Florida I,FL_Southwest_Florida_I
+L311,USA,St Lucie Co Intl,FL_St_Lucie_Co_Intl
+L312,USA,St Petersburg Albert W,FL_St_Petersburg_Albert_W
+L313,USA,St Petersburg Clear,FL_St_Petersburg_Clear
+L314,USA,Tallahassee Regional A,FL_Tallahassee_Regional_A
+L315,USA,Tampa International Ap,FL_Tampa_International_Ap
+L316,USA,Tyndall AFB,FL_Tyndall_AFB
+L317,USA,Valparaiso Elgin AFB,FL_Valparaiso_Elgin_AFB
+L318,USA,Valparaiso Hurlburt,FL_Valparaiso_Hurlburt
+L319,USA,Vero Beach Municipal,FL_Vero_Beach_Municipal
+L320,USA,West Palm Beach Intl A,FL_West_Palm_Beach_Intl_A
+L321,USA,Whiting Field Naas,FL_Whiting_Field_Naas
+L322,USA,Albany Dougherty Count,GA_Albany_Dougherty_Count
+L323,USA,Alma Bacon County AP,GA_Alma_Bacon_County_AP
+L324,USA,Athens Ben Epps AP,GA_Athens_Ben_Epps_AP
+L325,USA,Atlanta Hartsfield Int,GA_Atlanta_Hartsfield_Int
+L326,USA,Augusta Bush Field,GA_Augusta_Bush_Field
+L327,USA,Brunswick Golden Is,GA_Brunswick_Golden_Is
+L328,USA,Brunswick Malcolm Mcki,GA_Brunswick_Malcolm_Mcki
+L329,USA,Columbus Metropolitan,GA_Columbus_Metropolitan
+L330,USA,Dekalb Peachtree,GA_Dekalb_Peachtree
+L331,USA,Fort Benning Lawson,GA_Fort_Benning_Lawson
+L332,USA,Fulton Co Arpt Brow,GA_Fulton_Co_Arpt_Brow
+L333,USA,Hunter AAF,GA_Hunter_AAF
+L334,USA,Macon Middle Ga Region,GA_Macon_Middle_Ga_Region
+L335,USA,Marietta Dobbins AFB,GA_Marietta_Dobbins_AFB
+L336,USA,Moody AFB-Valdosta,GA_Moody_AFB-Valdosta
+L337,USA,Rome R B Russell AP,GA_Rome_R_B_Russell_AP
+L338,USA,Savannah Intl AP,GA_Savannah_Intl_AP
+L339,USA,Valdosta Wb Airport,GA_Valdosta_Wb_Airport
+L340,USA,Warner Robins AFB,GA_Warner_Robins_AFB
+L341,USA,Andersen AFB,GU_Andersen_AFB
+L342,USA,Guam WFO,GU_Guam_WFO
+L343,USA,Barbers Point NAS,HI_Barbers_Point_NAS
+L344,USA,Hilo International AP,HI_Hilo_International_AP
+L345,USA,Honolulu Intl Arpt,HI_Honolulu_Intl_Arpt
+L346,USA,Kahului Airport,HI_Kahului_Airport
+L347,USA,Kaneohe Bay MCAS,HI_Kaneohe_Bay_MCAS
+L348,USA,Kapalua,HI_Kapalua
+L349,USA,Kona Intl At Keahol,HI_Kona_Intl_At_Keahol
+L350,USA,Lanai,HI_Lanai
+L351,USA,Lihue Airport,HI_Lihue_Airport
+L352,USA,Molokai (AMOS),HI_Molokai_(AMOS)
+L353,USA,Algona,IA_Algona
+L354,USA,Atlantic,IA_Atlantic
+L355,USA,Boone Muni,IA_Boone_Muni
+L356,USA,Burlington Municipal A,IA_Burlington_Municipal_A
+L357,USA,Carroll,IA_Carroll
+L358,USA,Cedar Rapids Municipal,IA_Cedar_Rapids_Municipal
+L359,USA,Chariton,IA_Chariton
+L360,USA,Charles City,IA_Charles_City
+L361,USA,Clarinda,IA_Clarinda
+L362,USA,Clinton Muni (AWOS),IA_Clinton_Muni_(AWOS)
+L363,USA,Council Bluffs,IA_Council_Bluffs
+L364,USA,Creston,IA_Creston
+L365,USA,Decorah,IA_Decorah
+L366,USA,Denison,IA_Denison
+L367,USA,Des Moines Intl AP,IA_Des_Moines_Intl_AP
+L368,USA,Dubuque Regional AP,IA_Dubuque_Regional_AP
+L369,USA,Estherville Muni,IA_Estherville_Muni
+L370,USA,Fair Field,IA_Fair_Field
+L371,USA,Fort Dodge (AWOS),IA_Fort_Dodge_(AWOS)
+L372,USA,Fort Madison,IA_Fort_Madison
+L373,USA,Keokuk Muni,IA_Keokuk_Muni
+L374,USA,Knoxville,IA_Knoxville
+L375,USA,Le Mars,IA_Le_Mars
+L376,USA,Mason City Municipal A,IA_Mason_City_Municipal_A
+L377,USA,Monticello Muni,IA_Monticello_Muni
+L378,USA,Muscatine,IA_Muscatine
+L379,USA,Newton Muni,IA_Newton_Muni
+L380,USA,Oelwen,IA_Oelwen
+L381,USA,Orange City,IA_Orange_City
+L382,USA,Ottumwa Industrial AP,IA_Ottumwa_Industrial_AP
+L383,USA,Red Oak,IA_Red_Oak
+L384,USA,Sheldon,IA_Sheldon
+L385,USA,Shenandoah Muni,IA_Shenandoah_Muni
+L386,USA,Sioux City Sioux Gatew,IA_Sioux_City_Sioux_Gatew
+L387,USA,Spencer,IA_Spencer
+L388,USA,Storm Lake,IA_Storm_Lake
+L389,USA,Washington,IA_Washington
+L390,USA,Waterloo Municipal AP,IA_Waterloo_Municipal_AP
+L391,USA,Webster City,IA_Webster_City
+L392,USA,Boise Air Terminal,ID_Boise_Air_Terminal
+L393,USA,Burley Municipal Arpt,ID_Burley_Municipal_Arpt
+L394,USA,Caldwell (AWOS),ID_Caldwell_(AWOS)
+L395,USA,Coeur D%60ALENE(AWOS),ID_Coeur_D%60ALENE(AWOS)
+L396,USA,Hailey Friedman Mem,ID_Hailey_Friedman_Mem
+L397,USA,Idaho Falls Fanning Fi,ID_Idaho_Falls_Fanning_Fi
+L398,USA,Joslin Fld Magic Va,ID_Joslin_Fld_Magic_Va
+L399,USA,Lewiston Nez Perce Cnt,ID_Lewiston_Nez_Perce_Cnt
+L400,USA,Malad City,ID_Malad_City
+L401,USA,Mountain Home AFB,ID_Mountain_Home_AFB
+L402,USA,Pocatello Regional AP,ID_Pocatello_Regional_AP
+L403,USA,Salmon Lemhi (AWOS),ID_Salmon_Lemhi_(AWOS)
+L404,USA,Soda Springs Tigert,ID_Soda_Springs_Tigert
+L405,USA,Aurora Municipal,IL_Aurora_Municipal
+L406,USA,Belleville Scott AFB,IL_Belleville_Scott_AFB
+L407,USA,Cahokia St. Louis,IL_Cahokia_St._Louis
+L408,USA,Central Illinois Rg,IL_Central_Illinois_Rg
+L409,USA,Chicago Midway AP,IL_Chicago_Midway_AP
+L410,USA,Chicago Ohare Intl AP,IL_Chicago_Ohare_Intl_AP
+L411,USA,Chicago Waukegan,IL_Chicago_Waukegan
+L412,USA,Decatur,IL_Decatur
+L413,USA,Marion Regional,IL_Marion_Regional
+L414,USA,Moline Quad City Intl,IL_Moline_Quad_City_Intl
+L415,USA,Mount Vernon (AWOS),IL_Mount_Vernon_(AWOS)
+L416,USA,Peoria Greater Peoria,IL_Peoria_Greater_Peoria
+L417,USA,Quincy Muni Baldwin Fl,IL_Quincy_Muni_Baldwin_Fl
+L418,USA,Rockford Greater Rockf,IL_Rockford_Greater_Rockf
+L419,USA,Southern Illinois,IL_Southern_Illinois
+L420,USA,Springfield Capital Ap,IL_Springfield_Capital_Ap
+L421,USA,Sterling Rockfalls,IL_Sterling_Rockfalls
+L422,USA,Univ Of Illinois Wi,IL_Univ_Of_Illinois_Wi
+L423,USA,W. Chicago Du Page,IL_W._Chicago_Du_Page
+L424,USA,Delaware Co Johnson,IN_Delaware_Co_Johnson
+L425,USA,Evansville Regional Ap,IN_Evansville_Regional_Ap
+L426,USA,Fort Wayne Intl AP,IN_Fort_Wayne_Intl_AP
+L427,USA,Grissom Arb,IN_Grissom_Arb
+L428,USA,Huntingburg,IN_Huntingburg
+L429,USA,Indianapolis Intl AP,IN_Indianapolis_Intl_AP
+L430,USA,Lafayette Purdue Univ,IN_Lafayette_Purdue_Univ
+L431,USA,Monroe Co,IN_Monroe_Co
+L432,USA,South Bend Michiana Rg,IN_South_Bend_Michiana_Rg
+L433,USA,Terre Haute Hulman Reg,IN_Terre_Haute_Hulman_Reg
+L434,USA,Chanute Martin Johnson,KS_Chanute_Martin_Johnson
+L435,USA,Concordia Blosser Muni,KS_Concordia_Blosser_Muni
+L436,USA,Dodge City Regional Ap,KS_Dodge_City_Regional_Ap
+L437,USA,Emporia Municipal AP,KS_Emporia_Municipal_AP
+L438,USA,Fort Riley Marshall Aa,KS_Fort_Riley_Marshall_Aa
+L439,USA,Garden City Municipal,KS_Garden_City_Municipal
+L440,USA,Goodland Renner Field,KS_Goodland_Renner_Field
+L441,USA,Great Bend (AWOS),KS_Great_Bend_(AWOS)
+L442,USA,Hays Muni (AWOS),KS_Hays_Muni_(AWOS)
+L443,USA,Hill City Municipal Ap,KS_Hill_City_Municipal_Ap
+L444,USA,Hutchinson Municipal A,KS_Hutchinson_Municipal_A
+L445,USA,Liberal Muni,KS_Liberal_Muni
+L446,USA,Manhattan Rgnl,KS_Manhattan_Rgnl
+L447,USA,Mcconnell AFB,KS_Mcconnell_AFB
+L448,USA,Newton (AWOS),KS_Newton_(AWOS)
+L449,USA,Olathe Johnson Co.,KS_Olathe_Johnson_Co.
+L450,USA,Olathe Johnson Co Indu,KS_Olathe_Johnson_Co_Indu
+L451,USA,Russell Municipal AP,KS_Russell_Municipal_AP
+L452,USA,Salina Municipal AP,KS_Salina_Municipal_AP
+L453,USA,Topeka Forbes Field,KS_Topeka_Forbes_Field
+L454,USA,Topeka Municipal AP,KS_Topeka_Municipal_AP
+L455,USA,Wichita Col. Jabara,KS_Wichita_Col._Jabara
+L456,USA,Wichita Mid-Continent,KS_Wichita_Mid-Continent
+L457,USA,Bowling Green Warren C,KY_Bowling_Green_Warren_C
+L458,USA,Cincinnati Northern Ky,KY_Cincinnati_Northern_Ky
+L459,USA,Fort Campbell AAF,KY_Fort_Campbell_AAF
+L460,USA,Fort Knox Godman AAF,KY_Fort_Knox_Godman_AAF
+L461,USA,Henderson City,KY_Henderson_City
+L462,USA,Jackson Julian Carroll,KY_Jackson_Julian_Carroll
+L463,USA,Lexington Bluegrass Ap,KY_Lexington_Bluegrass_Ap
+L464,USA,London-Corbin AP,KY_London-Corbin_AP
+L465,USA,Louisville Bowman Fiel,KY_Louisville_Bowman_Fiel
+L466,USA,Louisville Standiford,KY_Louisville_Standiford
+L467,USA,Paducah Barkley Region,KY_Paducah_Barkley_Region
+L468,USA,Somerset(AWOS),KY_Somerset(AWOS)
+L469,USA,Alexandria Esler Regio,LA_Alexandria_Esler_Regio
+L470,USA,Barksdale AFB,LA_Barksdale_AFB
+L471,USA,Baton Rouge Ryan Arpt,LA_Baton_Rouge_Ryan_Arpt
+L472,USA,England AFB,LA_England_AFB
+L473,USA,Fort Polk AAF,LA_Fort_Polk_AAF
+L474,USA,Houma-Terrebonne,LA_Houma-Terrebonne
+L475,USA,Lafayette Regional AP,LA_Lafayette_Regional_AP
+L476,USA,Lake Charles Regional,LA_Lake_Charles_Regional
+L477,USA,Lake Charles Wb Airp,LA_Lake_Charles_Wb_Airp
+L478,USA,Monroe Regional AP,LA_Monroe_Regional_AP
+L479,USA,New Iberia Naas,LA_New_Iberia_Naas
+L480,USA,New Orleans Alvin Call,LA_New_Orleans_Alvin_Call
+L481,USA,New Orleans Intl Arpt,LA_New_Orleans_Intl_Arpt
+L482,USA,New Orleans Lakefront,LA_New_Orleans_Lakefront
+L483,USA,Patterson Memorial,LA_Patterson_Memorial
+L484,USA,Shreveport Downtown,LA_Shreveport_Downtown
+L485,USA,Shreveport Regional Ar,LA_Shreveport_Regional_Ar
+L486,USA,Barnstable Muni Boa,MA_Barnstable_Muni_Boa
+L487,USA,Beverly Muni,MA_Beverly_Muni
+L488,USA,Boston Logan Intl Arp,MA_Boston_Logan_Intl_Arp
+L489,USA,Chicopee Falls Westo,MA_Chicopee_Falls_Westo
+L490,USA,Lawrence Muni,MA_Lawrence_Muni
+L491,USA,Marthas Vineyard,MA_Marthas_Vineyard
+L492,USA,Nantucket Memorial AP,MA_Nantucket_Memorial_AP
+L493,USA,New Bedford Rgnl,MA_New_Bedford_Rgnl
+L494,USA,North Adams,MA_North_Adams
+L495,USA,Norwood Memorial,MA_Norwood_Memorial
+L496,USA,Otis Angb,MA_Otis_Angb
+L497,USA,Plymouth Municipal,MA_Plymouth_Municipal
+L498,USA,Provincetown (AWOS),MA_Provincetown_(AWOS)
+L499,USA,Westfield Barnes Muni,MA_Westfield_Barnes_Muni
+L500,USA,Worchester Regional Ar,MA_Worchester_Regional_Ar
+L501,USA,Andrews AFB,MD_Andrews_AFB
+L502,USA,Baltimore Blt-Washngtn,MD_Baltimore_Blt-Washngtn
+L503,USA,Hagerstown Rgnl Ric,MD_Hagerstown_Rgnl_Ric
+L504,USA,Patuxent River NAS,MD_Patuxent_River_NAS
+L505,USA,Salisbury Wicomico Co,MD_Salisbury_Wicomico_Co
+L506,USA,Auburn-Lewiston,ME_Auburn-Lewiston
+L507,USA,Augusta Airport,ME_Augusta_Airport
+L508,USA,Bangor International A,ME_Bangor_International_A
+L509,USA,Bar Harbor (AWOS),ME_Bar_Harbor_(AWOS)
+L510,USA,Caribou Municipal Arpt,ME_Caribou_Municipal_Arpt
+L511,USA,Houlton Intl Arpt,ME_Houlton_Intl_Arpt
+L512,USA,Millinocket Municipal,ME_Millinocket_Municipal
+L513,USA,Naval Air Station,ME_Naval_Air_Station
+L514,USA,Northern Aroostook,ME_Northern_Aroostook
+L515,USA,Portland Intl Jetport,ME_Portland_Intl_Jetport
+L516,USA,Presque Isle Municip,ME_Presque_Isle_Municip
+L517,USA,Rockland Knox(AWOS),ME_Rockland_Knox(AWOS)
+L518,USA,Sanford Muni (AWOS),ME_Sanford_Muni_(AWOS)
+L519,USA,Waterville (AWOS),ME_Waterville_(AWOS)
+L520,USA,Wiscasset,ME_Wiscasset
+L521,USA,Alpena County Regional,MI_Alpena_County_Regional
+L522,USA,Ann Arbor Municipal,MI_Ann_Arbor_Municipal
+L523,USA,Battle Creek Kellogg A,MI_Battle_Creek_Kellogg_A
+L524,USA,Benton Harbor Ross,MI_Benton_Harbor_Ross
+L525,USA,Cadillac Wexford Co Ap,MI_Cadillac_Wexford_Co_Ap
+L526,USA,Chippewa Co Intl,MI_Chippewa_Co_Intl
+L527,USA,Detroit City Airport,MI_Detroit_City_Airport
+L528,USA,Detroit Metropolitan A,MI_Detroit_Metropolitan_A
+L529,USA,Detroit Willow Run AP,MI_Detroit_Willow_Run_AP
+L530,USA,Escanaba (AWOS),MI_Escanaba_(AWOS)
+L531,USA,Flint Bishop Intl Arpt,MI_Flint_Bishop_Intl_Arpt
+L532,USA,Grand Rapids Kent Coun,MI_Grand_Rapids_Kent_Coun
+L533,USA,Hancock Houghton Co Ap,MI_Hancock_Houghton_Co_Ap
+L534,USA,Houghton Lake Roscommo,MI_Houghton_Lake_Roscommo
+L535,USA,Howell,MI_Howell
+L536,USA,Iron Mountain Ford,MI_Iron_Mountain_Ford
+L537,USA,Ironwood (AWOS),MI_Ironwood_(AWOS)
+L538,USA,Jackson Reynolds Field,MI_Jackson_Reynolds_Field
+L539,USA,Kalamazoo Battle Cr,MI_Kalamazoo_Battle_Cr
+L540,USA,Lansing Capital City A,MI_Lansing_Capital_City_A
+L541,USA,Manistee (AWOS),MI_Manistee_(AWOS)
+L542,USA,Menominee (AWOS),MI_Menominee_(AWOS)
+L543,USA,Mount Clemens Selfridg,MI_Mount_Clemens_Selfridg
+L544,USA,Muskegon County Arpt,MI_Muskegon_County_Arpt
+L545,USA,Oakland Co Intl,MI_Oakland_Co_Intl
+L546,USA,Oscoda Wurtsmith AFB,MI_Oscoda_Wurtsmith_AFB
+L547,USA,Pellston Emmet County,MI_Pellston_Emmet_County
+L548,USA,Saginaw Tri City Intl,MI_Saginaw_Tri_City_Intl
+L549,USA,Sault Ste Marie Sander,MI_Sault_Ste_Marie_Sander
+L550,USA,St.CLAIR County Int,MI_St.CLAIR_County_Int
+L551,USA,Traverse City Cherry C,MI_Traverse_City_Cherry_C
+L552,USA,Aitkin Ndb(AWOS),MN_Aitkin_Ndb(AWOS)
+L553,USA,Albert Lea (AWOS),MN_Albert_Lea_(AWOS)
+L554,USA,Alexandria Municipal A,MN_Alexandria_Municipal_A
+L555,USA,Austin Muni,MN_Austin_Muni
+L556,USA,Baudette International,MN_Baudette_International
+L557,USA,Bemidji Municipal,MN_Bemidji_Municipal
+L558,USA,Benson Muni,MN_Benson_Muni
+L559,USA,Brainerd Wieland,MN_Brainerd_Wieland
+L560,USA,Cambridge Muni,MN_Cambridge_Muni
+L561,USA,Cloquet (AWOS),MN_Cloquet_(AWOS)
+L562,USA,Crane Lake (AWOS),MN_Crane_Lake_(AWOS)
+L563,USA,Crookston Muni Fld,MN_Crookston_Muni_Fld
+L564,USA,Detroit Lakes(AWOS),MN_Detroit_Lakes(AWOS)
+L565,USA,Duluth International A,MN_Duluth_International_A
+L566,USA,Ely Muni,MN_Ely_Muni
+L567,USA,Eveleth Muni (AWOS),MN_Eveleth_Muni_(AWOS)
+L568,USA,Fairmont Muni(AWOS),MN_Fairmont_Muni(AWOS)
+L569,USA,Faribault Muni Awos,MN_Faribault_Muni_Awos
+L570,USA,Fergus Falls(AWOS),MN_Fergus_Falls(AWOS)
+L571,USA,Flying Cloud,MN_Flying_Cloud
+L572,USA,Fosston(AWOS),MN_Fosston(AWOS)
+L573,USA,Glenwood (ASOS),MN_Glenwood_(ASOS)
+L574,USA,Grand Rapids(AWOS),MN_Grand_Rapids(AWOS)
+L575,USA,Hallock,MN_Hallock
+L576,USA,Hibbing Chisholm-Hibbi,MN_Hibbing_Chisholm-Hibbi
+L577,USA,Hutchinson (AWOS),MN_Hutchinson_(AWOS)
+L578,USA,International Falls In,MN_International_Falls_In
+L579,USA,Litchfield Muni,MN_Litchfield_Muni
+L580,USA,Little Falls (AWOS),MN_Little_Falls_(AWOS)
+L581,USA,Mankato(AWOS),MN_Mankato(AWOS)
+L582,USA,Marshall Ryan(AWOS),MN_Marshall_Ryan(AWOS)
+L583,USA,Minneapolis-St Paul In,MN_Minneapolis-St_Paul_In
+L584,USA,Minneapolis Crystal,MN_Minneapolis_Crystal
+L585,USA,Mora Muni (AWOS),MN_Mora_Muni_(AWOS)
+L586,USA,Morris Muni (AWOS),MN_Morris_Muni_(AWOS)
+L587,USA,New Ulm Muni (AWOS),MN_New_Ulm_Muni_(AWOS)
+L588,USA,Orr,MN_Orr
+L589,USA,Owatonna (AWOS),MN_Owatonna_(AWOS)
+L590,USA,Park Rapids Municipal,MN_Park_Rapids_Municipal
+L591,USA,Pipestone (AWOS),MN_Pipestone_(AWOS)
+L592,USA,Red Wing,MN_Red_Wing
+L593,USA,Redwood Falls Muni,MN_Redwood_Falls_Muni
+L594,USA,Rochester Internationa,MN_Rochester_Internationa
+L595,USA,Roseau Muni (AWOS),MN_Roseau_Muni_(AWOS)
+L596,USA,Silver Bay,MN_Silver_Bay
+L597,USA,South St Paul Muni,MN_South_St_Paul_Muni
+L598,USA,St Cloud Regional Arpt,MN_St_Cloud_Regional_Arpt
+L599,USA,St Paul Downtown AP,MN_St_Paul_Downtown_AP
+L600,USA,Thief River(AWOS),MN_Thief_River(AWOS)
+L601,USA,Two Harbors,MN_Two_Harbors
+L602,USA,Wheaton Ndb (AWOS),MN_Wheaton_Ndb_(AWOS)
+L603,USA,Willmar,MN_Willmar
+L604,USA,Winona Muni (AWOS),MN_Winona_Muni_(AWOS)
+L605,USA,Worthington (AWOS),MN_Worthington_(AWOS)
+L606,USA,Cape Girardeau Municip,MO_Cape_Girardeau_Municip
+L607,USA,Columbia Regional Airp,MO_Columbia_Regional_Airp
+L608,USA,Farmington,MO_Farmington
+L609,USA,Ft Lnrd Wd AAF,MO_Ft_Lnrd_Wd_AAF
+L610,USA,Jefferson City Mem,MO_Jefferson_City_Mem
+L611,USA,Joplin Municipal AP,MO_Joplin_Municipal_AP
+L612,USA,Kaiser Mem (AWOS),MO_Kaiser_Mem_(AWOS)
+L613,USA,Kansas City Downtown A,MO_Kansas_City_Downtown_A
+L614,USA,Kansas City Intl Arpt,MO_Kansas_City_Intl_Arpt
+L615,USA,Kirksville Regional Ap,MO_Kirksville_Regional_Ap
+L616,USA,Poplar Bluff(AMOS),MO_Poplar_Bluff(AMOS)
+L617,USA,Springfield Regional A,MO_Springfield_Regional_A
+L618,USA,St Joseph Rosecrans Me,MO_St_Joseph_Rosecrans_Me
+L619,USA,St Louis Lambert Intl,MO_St_Louis_Lambert_Intl
+L620,USA,St Louis Spirit Of St,MO_St_Louis_Spirit_Of_St
+L621,USA,Vichy Rolla Natl Arpt,MO_Vichy_Rolla_Natl_Arpt
+L622,USA,Whiteman AFB,MO_Whiteman_AFB
+L623,USA,Columbus AFB,MS_Columbus_AFB
+L624,USA,Golden Tri(AWOS),MS_Golden_Tri(AWOS)
+L625,USA,Greenville Municipal,MS_Greenville_Municipal
+L626,USA,Greenwood Leflore Arpt,MS_Greenwood_Leflore_Arpt
+L627,USA,Gulfport Biloxi Int,MS_Gulfport_Biloxi_Int
+L628,USA,Hattiesburg Laurel,MS_Hattiesburg_Laurel
+L629,USA,Jackson International,MS_Jackson_International
+L630,USA,Keesler AFB,MS_Keesler_AFB
+L631,USA,Mccomb Pike County AP,MS_Mccomb_Pike_County_AP
+L632,USA,Meridian Key Field,MS_Meridian_Key_Field
+L633,USA,Meridian Naas,MS_Meridian_Naas
+L634,USA,Natchez Hardy(AWOS),MS_Natchez_Hardy(AWOS)
+L635,USA,Tupelo C D Lemons Arpt,MS_Tupelo_C_D_Lemons_Arpt
+L636,USA,Billings Logan Intl A,MT_Billings_Logan_Intl_A
+L637,USA,Bozeman Gallatin Field,MT_Bozeman_Gallatin_Field
+L638,USA,Butte Bert Mooney Arpt,MT_Butte_Bert_Mooney_Arpt
+L639,USA,Cut Bank Muni AP,MT_Cut_Bank_Muni_AP
+L640,USA,Glasgow Intl Arpt,MT_Glasgow_Intl_Arpt
+L641,USA,Glendive(AWOS),MT_Glendive(AWOS)
+L642,USA,Great Falls Intl Arpt,MT_Great_Falls_Intl_Arpt
+L643,USA,Havre City-County AP,MT_Havre_City-County_AP
+L644,USA,Helena Regional Airpor,MT_Helena_Regional_Airpor
+L645,USA,Kalispell Glacier Pk I,MT_Kalispell_Glacier_Pk_I
+L646,USA,Lewistown Municipal Ar,MT_Lewistown_Municipal_Ar
+L647,USA,Livingston Mission Fie,MT_Livingston_Mission_Fie
+L648,USA,Miles City Municipal A,MT_Miles_City_Municipal_A
+L649,USA,Missoula International,MT_Missoula_International
+L650,USA,Sidney-Richland,MT_Sidney-Richland
+L651,USA,Wolf Point Intl,MT_Wolf_Point_Intl
+L652,USA,Asheville Regional Arp,NC_Asheville_Regional_Arp
+L653,USA,Cape Hatteras Nws Bldg,NC_Cape_Hatteras_Nws_Bldg
+L654,USA,Charlotte Douglas Intl,NC_Charlotte_Douglas_Intl
+L655,USA,Cherry Point MCAS,NC_Cherry_Point_MCAS
+L656,USA,Dare Co Rgnl,NC_Dare_Co_Rgnl
+L657,USA,Elizabeth City Coast G,NC_Elizabeth_City_Coast_G
+L658,USA,Fayetteville Pope AFB,NC_Fayetteville_Pope_AFB
+L659,USA,Fayetteville Rgnl G,NC_Fayetteville_Rgnl_G
+L660,USA,Fort Bragg Simmons AAF,NC_Fort_Bragg_Simmons_AAF
+L661,USA,Goldsboro Seymour John,NC_Goldsboro_Seymour_John
+L662,USA,Greensboro Piedmont Tr,NC_Greensboro_Piedmont_Tr
+L663,USA,Hickory Regional AP,NC_Hickory_Regional_AP
+L664,USA,Jacksonville (AWOS),NC_Jacksonville_(AWOS)
+L665,USA,Kinston Stallings AFB,NC_Kinston_Stallings_AFB
+L666,USA,New Bern Craven Co Reg,NC_New_Bern_Craven_Co_Reg
+L667,USA,New River Mcaf,NC_New_River_Mcaf
+L668,USA,Pitt Greenville Arp,NC_Pitt_Greenville_Arp
+L669,USA,Raleigh Durham Interna,NC_Raleigh_Durham_Interna
+L670,USA,Rocky Mount Wilson,NC_Rocky_Mount_Wilson
+L671,USA,Southern Pines Awos,NC_Southern_Pines_Awos
+L672,USA,Wilmington Internation,NC_Wilmington_Internation
+L673,USA,Winston-Salem Reynolds,NC_Winston-Salem_Reynolds
+L674,USA,Bismarck Municipal Arp,ND_Bismarck_Municipal_Arp
+L675,USA,Devils Lake(AWOS),ND_Devils_Lake(AWOS)
+L676,USA,Dickinson Municipal Ap,ND_Dickinson_Municipal_Ap
+L677,USA,Fargo Hector Internati,ND_Fargo_Hector_Internati
+L678,USA,Grand Forks Af,ND_Grand_Forks_Af
+L679,USA,Grand Forks Internatio,ND_Grand_Forks_Internatio
+L680,USA,Jamestown Municipal Ar,ND_Jamestown_Municipal_Ar
+L681,USA,Minot AFB,ND_Minot_AFB
+L682,USA,Minot Faa AP,ND_Minot_Faa_AP
+L683,USA,Williston Sloulin Intl,ND_Williston_Sloulin_Intl
+L684,USA,Ainsworth Municipal,NE_Ainsworth_Municipal
+L685,USA,Alliance Municipal,NE_Alliance_Municipal
+L686,USA,Beatrice Municipal,NE_Beatrice_Municipal
+L687,USA,Bellevue Offutt AFB,NE_Bellevue_Offutt_AFB
+L688,USA,Brewster Field Arpt,NE_Brewster_Field_Arpt
+L689,USA,Broken Bow Muni,NE_Broken_Bow_Muni
+L690,USA,Chadron Municipal AP,NE_Chadron_Municipal_AP
+L691,USA,Columbus Muni,NE_Columbus_Muni
+L692,USA,Falls City Brenner,NE_Falls_City_Brenner
+L693,USA,Fremont Muni Arpt,NE_Fremont_Muni_Arpt
+L694,USA,Grand Island Central N,NE_Grand_Island_Central_N
+L695,USA,Hastings Municipal,NE_Hastings_Municipal
+L696,USA,Imperial Faa AP,NE_Imperial_Faa_AP
+L697,USA,Kearney Muni (AWOS),NE_Kearney_Muni_(AWOS)
+L698,USA,Lincoln Municipal Arpt,NE_Lincoln_Municipal_Arpt
+L699,USA,Mccook Municipal,NE_Mccook_Municipal
+L700,USA,Norfolk Karl Stefan Me,NE_Norfolk_Karl_Stefan_Me
+L701,USA,North Platte Regional,NE_North_Platte_Regional
+L702,USA,O%60NEILL Baker Field,NE_O%60NEILL_Baker_Field
+L703,USA,Omaha Eppley Airfield,NE_Omaha_Eppley_Airfield
+L704,USA,Omaha Wsfo,NE_Omaha_Wsfo
+L705,USA,Ord Sharp Field,NE_Ord_Sharp_Field
+L706,USA,Scottsbluff W B Heilig,NE_Scottsbluff_W_B_Heilig
+L707,USA,Sidney Municipal AP,NE_Sidney_Municipal_AP
+L708,USA,Tekamah (ASOS),NE_Tekamah_(ASOS)
+L709,USA,Valentine Miller Field,NE_Valentine_Miller_Field
+L710,USA,Berlin Municipal,NH_Berlin_Municipal
+L711,USA,Concord Municipal Arpt,NH_Concord_Municipal_Arpt
+L712,USA,Dillant Hopkins,NH_Dillant_Hopkins
+L713,USA,Laconia Muni (AWOS),NH_Laconia_Muni_(AWOS)
+L714,USA,Lebanon Municipal,NH_Lebanon_Municipal
+L715,USA,Manchester Airport,NH_Manchester_Airport
+L716,USA,Mount Washington,NH_Mount_Washington
+L717,USA,Pease Intl Tradepor,NH_Pease_Intl_Tradepor
+L718,USA,Atlantic City Intl AP,NJ_Atlantic_City_Intl_AP
+L719,USA,Belmar Asc,NJ_Belmar_Asc
+L720,USA,Caldwell Essex Co.,NJ_Caldwell_Essex_Co.
+L721,USA,Cape May Co,NJ_Cape_May_Co
+L722,USA,Mcguire AFB,NJ_Mcguire_AFB
+L723,USA,Millville Municipal Ap,NJ_Millville_Municipal_Ap
+L724,USA,Newark International A,NJ_Newark_International_A
+L725,USA,Teterboro Airport,NJ_Teterboro_Airport
+L726,USA,Trenton Mercer County,NJ_Trenton_Mercer_County
+L727,USA,Albuquerque Intl Arpt,NM_Albuquerque_Intl_Arpt
+L728,USA,Carlsbad Cavern City A,NM_Carlsbad_Cavern_City_A
+L729,USA,Clayton Municipal Airp,NM_Clayton_Municipal_Airp
+L730,USA,Clovis Cannon AFB,NM_Clovis_Cannon_AFB
+L731,USA,Clovis Muni,NM_Clovis_Muni
+L732,USA,Deming Muni,NM_Deming_Muni
+L733,USA,Farmington Four Corner,NM_Farmington_Four_Corner
+L734,USA,Gallup Sen Clarke Fld,NM_Gallup_Sen_Clarke_Fld
+L735,USA,Holloman AFB,NM_Holloman_AFB
+L736,USA,Las Cruces Intl,NM_Las_Cruces_Intl
+L737,USA,Las Vegas Municipal Ar,NM_Las_Vegas_Municipal_Ar
+L738,USA,Roswell Industrial Air,NM_Roswell_Industrial_Air
+L739,USA,Sata Fe County Municip,NM_Sata_Fe_County_Municip
+L740,USA,Sierra Blanca Rgnl,NM_Sierra_Blanca_Rgnl
+L741,USA,Taos Muni Apt(AWOS),NM_Taos_Muni_Apt(AWOS)
+L742,USA,Truth Or Consequences,NM_Truth_Or_Consequences
+L743,USA,Tucumcari Faa AP,NM_Tucumcari_Faa_AP
+L744,USA,Elko Municipal Arpt,NV_Elko_Municipal_Arpt
+L745,USA,Ely Yelland Field,NV_Ely_Yelland_Field
+L746,USA,Fallon Naas,NV_Fallon_Naas
+L747,USA,Las Vegas Mccarran Int,NV_Las_Vegas_Mccarran_Int
+L748,USA,Lovelock Derby Field,NV_Lovelock_Derby_Field
+L749,USA,Mercury Desert Rock Ap,NV_Mercury_Desert_Rock_Ap
+L750,USA,Nellis AFB,NV_Nellis_AFB
+L751,USA,Reno Tahoe Internation,NV_Reno_Tahoe_Internation
+L752,USA,Tonopah Airport,NV_Tonopah_Airport
+L753,USA,Winnemucca Municipal A,NV_Winnemucca_Municipal_A
+L754,USA,Adirondack Rgnl,NY_Adirondack_Rgnl
+L755,USA,Albany County AP,NY_Albany_County_AP
+L756,USA,Binghamton Edwin A Lin,NY_Binghamton_Edwin_A_Lin
+L757,USA,Buffalo Niagara Intl A,NY_Buffalo_Niagara_Intl_A
+L758,USA,Elmira Corning Regiona,NY_Elmira_Corning_Regiona
+L759,USA,Fort Drum Wheeler-S,NY_Fort_Drum_Wheeler-S
+L760,USA,Glens Falls AP,NY_Glens_Falls_AP
+L761,USA,Islip Long Isl MacArth,NY_Islip_Long_Isl_MacArth
+L762,USA,Jamestown (AWOS),NY_Jamestown_(AWOS)
+L763,USA,Massena AP,NY_Massena_AP
+L764,USA,Monticello(AWOS),NY_Monticello(AWOS)
+L765,USA,New York Central Prk O,NY_New_York_Central_Prk_O
+L766,USA,New York J F Kennedy I,NY_New_York_J_F_Kennedy_I
+L767,USA,New York Laguardia Arp,NY_New_York_Laguardia_Arp
+L768,USA,Niagara Falls Af,NY_Niagara_Falls_Af
+L769,USA,Poughkeepsie Dutchess,NY_Poughkeepsie_Dutchess
+L770,USA,Republic,NY_Republic
+L771,USA,Rochester Greater Roch,NY_Rochester_Greater_Roch
+L772,USA,Stewart Field,NY_Stewart_Field
+L773,USA,Syracuse Hancock Intl,NY_Syracuse_Hancock_Intl
+L774,USA,Utica Oneida County Ap,NY_Utica_Oneida_County_Ap
+L775,USA,Watertown AP,NY_Watertown_AP
+L776,USA,Westhampton Gabreski A,NY_Westhampton_Gabreski_A
+L777,USA,White Plains Westchest,NY_White_Plains_Westchest
+L778,USA,Akron Akron-Canton Reg,OH_Akron_Akron-Canton_Reg
+L779,USA,Burke Lakefront,OH_Burke_Lakefront
+L780,USA,Cincinnati Municipal A,OH_Cincinnati_Municipal_A
+L781,USA,Cleveland Hopkins Intl,OH_Cleveland_Hopkins_Intl
+L782,USA,Columbus Port Columbus,OH_Columbus_Port_Columbus
+L783,USA,Dayton International A,OH_Dayton_International_A
+L784,USA,Dayton Wright Patterso,OH_Dayton_Wright_Patterso
+L785,USA,Findlay Airport,OH_Findlay_Airport
+L786,USA,Mansfield Lahm Municip,OH_Mansfield_Lahm_Municip
+L787,USA,Ohio State Universi,OH_Ohio_State_Universi
+L788,USA,Toledo Express Airport,OH_Toledo_Express_Airport
+L789,USA,Youngstown Regional Ai,OH_Youngstown_Regional_Ai
+L790,USA,Zanesville Municipal A,OH_Zanesville_Municipal_A
+L791,USA,Altus AFB,OK_Altus_AFB
+L792,USA,Bartlesville Philli,OK_Bartlesville_Philli
+L793,USA,Clinton-Sherman,OK_Clinton-Sherman
+L794,USA,Fort Sill Post Field A,OK_Fort_Sill_Post_Field_A
+L795,USA,Gage Airport,OK_Gage_Airport
+L796,USA,Hobart Municipal AP,OK_Hobart_Municipal_AP
+L797,USA,Lawton Municipal,OK_Lawton_Municipal
+L798,USA,Mcalester Municipal Ap,OK_Mcalester_Municipal_Ap
+L799,USA,Oklahoma City Tinker A,OK_Oklahoma_City_Tinker_A
+L800,USA,Oklahoma City Wiley,OK_Oklahoma_City_Wiley
+L801,USA,Oklahoma City Will Rog,OK_Oklahoma_City_Will_Rog
+L802,USA,Ponca City Municipal A,OK_Ponca_City_Municipal_A
+L803,USA,Stillwater Rgnl,OK_Stillwater_Rgnl
+L804,USA,Tulsa International Ai,OK_Tulsa_International_Ai
+L805,USA,Vance AFB,OK_Vance_AFB
+L806,USA,Astoria Regional Airpo,OR_Astoria_Regional_Airpo
+L807,USA,Aurora State,OR_Aurora_State
+L808,USA,Baker Municipal AP,OR_Baker_Municipal_AP
+L809,USA,Burns Municipal Arpt,OR_Burns_Municipal_Arpt
+L810,USA,Corvallis Muni,OR_Corvallis_Muni
+L811,USA,Eugene Mahlon Sweet Ar,OR_Eugene_Mahlon_Sweet_Ar
+L812,USA,Klamath Falls Intl AP,OR_Klamath_Falls_Intl_AP
+L813,USA,La Grande Muni AP,OR_La_Grande_Muni_AP
+L814,USA,Lakeview (AWOS),OR_Lakeview_(AWOS)
+L815,USA,Medford Rogue Valley I,OR_Medford_Rogue_Valley_I
+L816,USA,North Bend Muni Airpor,OR_North_Bend_Muni_Airpor
+L817,USA,Pendleton E Or Regiona,OR_Pendleton_E_Or_Regiona
+L818,USA,Portland Hillsboro,OR_Portland_Hillsboro
+L819,USA,Portland International,OR_Portland_International
+L820,USA,Portland Troutdale,OR_Portland_Troutdale
+L821,USA,Redmond Roberts Field,OR_Redmond_Roberts_Field
+L822,USA,Roseburg Regional AP,OR_Roseburg_Regional_AP
+L823,USA,Salem Mcnary Field,OR_Salem_Mcnary_Field
+L824,USA,Sexton Summit,OR_Sexton_Summit
+L825,USA,Allentown Lehigh Valle,PA_Allentown_Lehigh_Valle
+L826,USA,Altoona Blair Co Arpt,PA_Altoona_Blair_Co_Arpt
+L827,USA,Bradford Regional AP,PA_Bradford_Regional_AP
+L828,USA,Butler Co. (AWOS),PA_Butler_Co._(AWOS)
+L829,USA,Dubois Faa AP,PA_Dubois_Faa_AP
+L830,USA,Erie International AP,PA_Erie_International_AP
+L831,USA,Franklin,PA_Franklin
+L832,USA,Harrisburg Capital Cit,PA_Harrisburg_Capital_Cit
+L833,USA,Johnstown Cambria Coun,PA_Johnstown_Cambria_Coun
+L834,USA,Lancaster,PA_Lancaster
+L835,USA,Middletown Harrisburg,PA_Middletown_Harrisburg
+L836,USA,Philadelphia Internati,PA_Philadelphia_Internati
+L837,USA,Philadelphia Ne Philad,PA_Philadelphia_Ne_Philad
+L838,USA,Pittsburgh Allegheny C,PA_Pittsburgh_Allegheny_C
+L839,USA,Pittsburgh Internation,PA_Pittsburgh_Internation
+L840,USA,Reading Spaatz Field,PA_Reading_Spaatz_Field
+L841,USA,State College,PA_State_College
+L842,USA,Washington (AWOS),PA_Washington_(AWOS)
+L843,USA,Wilkes-Barre Scranton,PA_Wilkes-Barre_Scranton
+L844,USA,Williamsport Regional,PA_Williamsport_Regional
+L845,USA,Willow Grove NAS,PA_Willow_Grove_NAS
+L846,USA,Aquadilla Borinquen,PR_Aquadilla_Borinquen
+L847,USA,Eugenio Maria De Ho,PR_Eugenio_Maria_De_Ho
+L848,USA,Mercedita,PR_Mercedita
+L849,USA,Roosevelt Roads,PR_Roosevelt_Roads
+L850,USA,San Juan Intl Arpt,PR_San_Juan_Intl_Arpt
+L851,USA,San Juan L M Marin Int,PR_San_Juan_L_M_Marin_Int
+L852,USA,Block Island State Arp,RI_Block_Island_State_Arp
+L853,USA,Pawtucket (AWOS),RI_Pawtucket_(AWOS)
+L854,USA,Providence T F Green S,RI_Providence_T_F_Green_S
+L855,USA,Anderson County AP,SC_Anderson_County_AP
+L856,USA,Beaufort MCAS,SC_Beaufort_MCAS
+L857,USA,Charleston Intl Arpt,SC_Charleston_Intl_Arpt
+L858,USA,Columbia Metro Arpt,SC_Columbia_Metro_Arpt
+L859,USA,Florence Regional AP,SC_Florence_Regional_AP
+L860,USA,Greenville Downtown Ap,SC_Greenville_Downtown_Ap
+L861,USA,Greer Greenv'L-Spartan,SC_Greer_Greenv'L-Spartan
+L862,USA,Myrtle Beach AFB,SC_Myrtle_Beach_AFB
+L863,USA,North Myrtle Beach Gra,SC_North_Myrtle_Beach_Gra
+L864,USA,Sumter Shaw AFB,SC_Sumter_Shaw_AFB
+L865,USA,Aberdeen Regional Arpt,SD_Aberdeen_Regional_Arpt
+L866,USA,Brookings (AWOS),SD_Brookings_(AWOS)
+L867,USA,Chan Gurney Muni,SD_Chan_Gurney_Muni
+L868,USA,Ellsworth AFB,SD_Ellsworth_AFB
+L869,USA,Huron Regional Arpt,SD_Huron_Regional_Arpt
+L870,USA,Mitchell (AWOS),SD_Mitchell_(AWOS)
+L871,USA,Mobridge,SD_Mobridge
+L872,USA,Pierre Municipal AP,SD_Pierre_Municipal_AP
+L873,USA,Rapid City Regional Ar,SD_Rapid_City_Regional_Ar
+L874,USA,Sioux Falls Foss Field,SD_Sioux_Falls_Foss_Field
+L875,USA,Watertown Municipal Ap,SD_Watertown_Municipal_Ap
+L876,USA,Bristol Tri City Airpo,TN_Bristol_Tri_City_Airpo
+L877,USA,Chattanooga Lovell Fie,TN_Chattanooga_Lovell_Fie
+L878,USA,Crossville Memorial Ap,TN_Crossville_Memorial_Ap
+L879,USA,Dyersburg Municipal Ap,TN_Dyersburg_Municipal_Ap
+L880,USA,Jackson Mckellar-Sipes,TN_Jackson_Mckellar-Sipes
+L881,USA,Knoxville Mcghee Tyson,TN_Knoxville_Mcghee_Tyson
+L882,USA,Memphis International,TN_Memphis_International
+L883,USA,Nashville Internationa,TN_Nashville_Internationa
+L884,USA,Abilene Dyess AFB,TX_Abilene_Dyess_AFB
+L885,USA,Abilene Regional AP,TX_Abilene_Regional_AP
+L886,USA,Alice Intl AP,TX_Alice_Intl_AP
+L887,USA,Amarillo International,TX_Amarillo_International
+L888,USA,Austin Mueller Municip,TX_Austin_Mueller_Municip
+L889,USA,Brownsville S Padre Is,TX_Brownsville_S_Padre_Is
+L890,USA,Camp Mabry,TX_Camp_Mabry
+L891,USA,Childress Municipal Ap,TX_Childress_Municipal_Ap
+L892,USA,College Station Easter,TX_College_Station_Easter
+L893,USA,Corpus Christi Intl Ar,TX_Corpus_Christi_Intl_Ar
+L894,USA,Corpus Christi NAS,TX_Corpus_Christi_NAS
+L895,USA,Cotulla Faa AP,TX_Cotulla_Faa_AP
+L896,USA,Cox Fld,TX_Cox_Fld
+L897,USA,Dalhart Municipal AP,TX_Dalhart_Municipal_AP
+L898,USA,Dallas-Fort Worth Intl,TX_Dallas-Fort_Worth_Intl
+L899,USA,Dallas Addison Arpt,TX_Dallas_Addison_Arpt
+L900,USA,Dallas Love Field,TX_Dallas_Love_Field
+L901,USA,Dallas Redbird Arpt,TX_Dallas_Redbird_Arpt
+L902,USA,Del Rio,TX_Del_Rio
+L903,USA,Del Rio Laughlin AFB,TX_Del_Rio_Laughlin_AFB
+L904,USA,Draughon Miller Cen,TX_Draughon_Miller_Cen
+L905,USA,El Paso International,TX_El_Paso_International
+L906,USA,Fort Hood,TX_Fort_Hood
+L907,USA,Fort Worth Alliance,TX_Fort_Worth_Alliance
+L908,USA,Fort Worth Meacham,TX_Fort_Worth_Meacham
+L909,USA,Fort Worth NAS,TX_Fort_Worth_NAS
+L910,USA,Galveston Scholes,TX_Galveston_Scholes
+L911,USA,Georgetown (AWOS),TX_Georgetown_(AWOS)
+L912,USA,Greenville Majors,TX_Greenville_Majors
+L913,USA,Harlingen Rio Grande V,TX_Harlingen_Rio_Grande_V
+L914,USA,Hondo Municipal AP,TX_Hondo_Municipal_AP
+L915,USA,Houston Bush Intercont,TX_Houston_Bush_Intercont
+L916,USA,Houston D.W. Hooks,TX_Houston_D.W._Hooks
+L917,USA,Houston Ellington AFB,TX_Houston_Ellington_AFB
+L918,USA,Houston William P Hobb,TX_Houston_William_P_Hobb
+L919,USA,Killeen Muni (AWOS),TX_Killeen_Muni_(AWOS)
+L920,USA,Kingsville,TX_Kingsville
+L921,USA,Laredo Intl AP,TX_Laredo_Intl_AP
+L922,USA,Longview Gregg County,TX_Longview_Gregg_County
+L923,USA,Lubbock International,TX_Lubbock_International
+L924,USA,Lufkin Angelina Co,TX_Lufkin_Angelina_Co
+L925,USA,Marfa AP,TX_Marfa_AP
+L926,USA,Mc Gregor (AWOS),TX_Mc_Gregor_(AWOS)
+L927,USA,Mcallen Miller Intl Ap,TX_Mcallen_Miller_Intl_Ap
+L928,USA,Midland International,TX_Midland_International
+L929,USA,Mineral Wells Municipa,TX_Mineral_Wells_Municipa
+L930,USA,Nacogdoches (AWOS),TX_Nacogdoches_(AWOS)
+L931,USA,Palacios Municipal AP,TX_Palacios_Municipal_AP
+L932,USA,Port Arthur Jefferson,TX_Port_Arthur_Jefferson
+L933,USA,Randolph AFB,TX_Randolph_AFB
+L934,USA,Robert Gray AAF,TX_Robert_Gray_AAF
+L935,USA,Rockport Aransas Co,TX_Rockport_Aransas_Co
+L936,USA,San Angelo Mathis Fiel,TX_San_Angelo_Mathis_Fiel
+L937,USA,San Antonio Intl AP,TX_San_Antonio_Intl_AP
+L938,USA,San Antonio Kelly Fiel,TX_San_Antonio_Kelly_Fiel
+L939,USA,San Antonio Stinson,TX_San_Antonio_Stinson
+L940,USA,Tyler Pounds Fld,TX_Tyler_Pounds_Fld
+L941,USA,Victoria Regional AP,TX_Victoria_Regional_AP
+L942,USA,Waco Regional AP,TX_Waco_Regional_AP
+L943,USA,Wichita Falls Municipa,TX_Wichita_Falls_Municipa
+L944,USA,Wink Winkler County Ap,TX_Wink_Winkler_County_Ap
+L945,USA,Blanding,UT_Blanding
+L946,USA,Bryce Cnyn Faa AP,UT_Bryce_Cnyn_Faa_AP
+L947,USA,Cedar City Municipal A,UT_Cedar_City_Municipal_A
+L948,USA,Delta,UT_Delta
+L949,USA,Hanksville,UT_Hanksville
+L950,USA,Moab Canyonlands,UT_Moab_Canyonlands
+L951,USA,Ogden Hill AFB,UT_Ogden_Hill_AFB
+L952,USA,Ogden Hinkley Airport,UT_Ogden_Hinkley_Airport
+L953,USA,Provo Muni (AWOS),UT_Provo_Muni_(AWOS)
+L954,USA,Saint George (AWOS),UT_Saint_George_(AWOS)
+L955,USA,Salt Lake City Intl A,UT_Salt_Lake_City_Intl_A
+L956,USA,Vernal,UT_Vernal
+L957,USA,Wendover Usaf Auxiliar,UT_Wendover_Usaf_Auxiliar
+L958,USA,Abington,VA_Abington
+L959,USA,Charlottesville Faa,VA_Charlottesville_Faa
+L960,USA,Danville Faa AP,VA_Danville_Faa_AP
+L961,USA,Davison AAF,VA_Davison_AAF
+L962,USA,Dinwiddie Co,VA_Dinwiddie_Co
+L963,USA,Farmville,VA_Farmville
+L964,USA,Franklin Naas,VA_Franklin_Naas
+L965,USA,Hillsville,VA_Hillsville
+L966,USA,Hot Springs Ingalls,VA_Hot_Springs_Ingalls
+L967,USA,Langley AFB,VA_Langley_AFB
+L968,USA,Leesburg Godfrey,VA_Leesburg_Godfrey
+L969,USA,Lynchburg Regional Arp,VA_Lynchburg_Regional_Arp
+L970,USA,Manassas Muni(AWOS),VA_Manassas_Muni(AWOS)
+L971,USA,Marion Wytheville,VA_Marion_Wytheville
+L972,USA,Martinsville,VA_Martinsville
+L973,USA,Melfa Accomack Arpt,VA_Melfa_Accomack_Arpt
+L974,USA,Newport News,VA_Newport_News
+L975,USA,Norfolk International,VA_Norfolk_International
+L976,USA,Norfolk NAS,VA_Norfolk_NAS
+L977,USA,Oceana NAS,VA_Oceana_NAS
+L978,USA,Pulaski,VA_Pulaski
+L979,USA,Quantico MCAS,VA_Quantico_MCAS
+L980,USA,Richmond International,VA_Richmond_International
+L981,USA,Roanoke Regional AP,VA_Roanoke_Regional_AP
+L982,USA,Shannon Arpt,VA_Shannon_Arpt
+L983,USA,Staunton Shenandoah,VA_Staunton_Shenandoah
+L984,USA,Virginia Tech Arpt,VA_Virginia_Tech_Arpt
+L985,USA,Washington Dc Dulles I,VA_Washington_Dc_Dulles_I
+L986,USA,Washington Dc Reagan A,VA_Washington_Dc_Reagan_A
+L987,USA,Winchester Rgnl,VA_Winchester_Rgnl
+L988,USA,Wise Lonesome Pine,VA_Wise_Lonesome_Pine
+L989,USA,Charlotte Amalie Harry,VI_Charlotte_Amalie_Harry
+L990,USA,Burlington Internation,VT_Burlington_Internation
+L991,USA,Montpelier AP,VT_Montpelier_AP
+L992,USA,Rutland State,VT_Rutland_State
+L993,USA,Springfield Hartnes,VT_Springfield_Hartnes
+L994,USA,Bellingham Intl AP,WA_Bellingham_Intl_AP
+L995,USA,Bremerton National,WA_Bremerton_National
+L996,USA,Ephrata AP Fcwos,WA_Ephrata_AP_Fcwos
+L997,USA,Fairchild AFB,WA_Fairchild_AFB
+L998,USA,Felts Fld,WA_Felts_Fld
+L999,USA,Gray AAF,WA_Gray_AAF
+L1000,USA,Hanford,WA_Hanford
+L1001,USA,Hoquiam AP,WA_Hoquiam_AP
+L1002,USA,Kelso Wb AP,WA_Kelso_Wb_AP
+L1003,USA,Moses Lake Grant Count,WA_Moses_Lake_Grant_Count
+L1004,USA,Olympia Airport,WA_Olympia_Airport
+L1005,USA,Pasco,WA_Pasco
+L1006,USA,Pullman Moscow Rgnl,WA_Pullman_Moscow_Rgnl
+L1007,USA,Quillayute State Airpo,WA_Quillayute_State_Airpo
+L1008,USA,Renton Muni,WA_Renton_Muni
+L1009,USA,Seattle Boeing Field,WA_Seattle_Boeing_Field
+L1010,USA,Seattle Seattle-Tacoma,WA_Seattle_Seattle-Tacoma
+L1011,USA,Snohomish Co,WA_Snohomish_Co
+L1012,USA,Spokane International,WA_Spokane_International
+L1013,USA,Stampede Pass,WA_Stampede_Pass
+L1014,USA,Tacoma Mcchord AFB,WA_Tacoma_Mcchord_AFB
+L1015,USA,Tacoma Narrows,WA_Tacoma_Narrows
+L1016,USA,The Dalles Municipal A,WA_The_Dalles_Municipal_A
+L1017,USA,Toledo-Winlock Mem,WA_Toledo-Winlock_Mem
+L1018,USA,Walla Walla City Count,WA_Walla_Walla_City_Count
+L1019,USA,Wenatchee Pangborn,WA_Wenatchee_Pangborn
+L1020,USA,Whidbey Island NAS,WA_Whidbey_Island_NAS
+L1021,USA,William R Fairchild,WA_William_R_Fairchild
+L1022,USA,Yakima Air Terminal,WA_Yakima_Air_Terminal
+L1023,USA,Antigo LANG(AWOS),WI_Antigo_LANG(AWOS)
+L1024,USA,Appleton Outagamie,WI_Appleton_Outagamie
+L1025,USA,Eau Claire County AP,WI_Eau_Claire_County_AP
+L1026,USA,Green Bay Austin Strau,WI_Green_Bay_Austin_Strau
+L1027,USA,Janesville Rock Co.,WI_Janesville_Rock_Co.
+L1028,USA,La Crosse Municipal Ar,WI_La_Crosse_Municipal_Ar
+L1029,USA,Lone Rock Faa AP,WI_Lone_Rock_Faa_AP
+L1030,USA,Madison Dane Co Region,WI_Madison_Dane_Co_Region
+L1031,USA,Manitowac Muni Awos,WI_Manitowac_Muni_Awos
+L1032,USA,Marshfield Muni,WI_Marshfield_Muni
+L1033,USA,Milwaukee Mitchell Int,WI_Milwaukee_Mitchell_Int
+L1034,USA,Minocqua Woodruff,WI_Minocqua_Woodruff
+L1035,USA,Mosinee Central Wi,WI_Mosinee_Central_Wi
+L1036,USA,Phillips Price Co.,WI_Phillips_Price_Co.
+L1037,USA,Rhinelander Oneida,WI_Rhinelander_Oneida
+L1038,USA,Rice Lake Municipal,WI_Rice_Lake_Municipal
+L1039,USA,Sturgeon Bay,WI_Sturgeon_Bay
+L1040,USA,Watertown,WI_Watertown
+L1041,USA,Wausau Municipal Arpt,WI_Wausau_Municipal_Arpt
+L1042,USA,Wittman Rgnl,WI_Wittman_Rgnl
+L1043,USA,Beckley Raleigh Co Mem,WV_Beckley_Raleigh_Co_Mem
+L1044,USA,Bluefield Mercer Co,WV_Bluefield_Mercer_Co
+L1045,USA,Charleston Yeager Arpt,WV_Charleston_Yeager_Arpt
+L1046,USA,Elkins Elkins-Randolph,WV_Elkins_Elkins-Randolph
+L1047,USA,Harrison Marion Rgn,WV_Harrison_Marion_Rgn
+L1048,USA,Huntington Tri-State A,WV_Huntington_Tri-State_A
+L1049,USA,Lewisburg Greenbrie,WV_Lewisburg_Greenbrie
+L1050,USA,Martinsburg Eastern Wv,WV_Martinsburg_Eastern_Wv
+L1051,USA,Morgantown Hart Field,WV_Morgantown_Hart_Field
+L1052,USA,Parkersburg Wood Count,WV_Parkersburg_Wood_Count
+L1053,USA,Wheeling Ohio County A,WV_Wheeling_Ohio_County_A
+L1054,USA,Casper Natrona Co Intl,WY_Casper_Natrona_Co_Intl
+L1055,USA,Cheyenne Municipal Arp,WY_Cheyenne_Municipal_Arp
+L1056,USA,Cody Muni (AWOS),WY_Cody_Muni_(AWOS)
+L1057,USA,Evanston Burns Fld,WY_Evanston_Burns_Fld
+L1058,USA,Gillette Gillette-C,WY_Gillette_Gillette-C
+L1059,USA,Jackson Hole,WY_Jackson_Hole
+L1060,USA,Lander Hunt Field,WY_Lander_Hunt_Field
+L1061,USA,Laramie General Brees,WY_Laramie_General_Brees
+L1062,USA,Rawlins Municipal AP,WY_Rawlins_Municipal_AP
+L1063,USA,Riverton Municipl AP,WY_Riverton_Municipl_AP
+L1064,USA,Rock Springs Arpt,WY_Rock_Springs_Arpt
+L1065,USA,Sheridan County Arpt,WY_Sheridan_County_Arpt
+L1066,USA,Worland Municipal,WY_Worland_Municipal
