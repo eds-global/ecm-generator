@@ -16,6 +16,6 @@ AWECM SIM is an automated batch processing tool designed to simplifies eQuest EC
 - Location and 
 - Weather File.
 
-👨‍💻 Author
+👨‍💻 Developed By-
 
 Rajeev Kumar
