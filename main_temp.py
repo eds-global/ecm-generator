@@ -25,7 +25,7 @@ import shutil
 from pathlib import Path
 from collections import defaultdict
 import streamlit.web.cli as stcli
-from src import insertWall, insertConst, orient, lighting, equip, windows, insertRoof, wwr
+from .src import insertWall, insertConst, orient, lighting, equip, windows, insertRoof, wwr
 import traceback
 from helper import *
 from report_ext import *
@@ -306,30 +306,40 @@ else:
         user_input = "Other-City"
         # When "Other" is selected, show .bin upload option
         uploaded_bin = st.file_uploader("📤 Upload .bin file", type=["bin"])
-        # st.markdown(f"<span style='color:red;'>Remember that uploaded file in your C:/doe22/weather</span>", unsafe_allow_html=True)
         if uploaded_bin is not None:
-            # Define the save folder path
             save_folder = r"C:\doe22\weather"
             os.makedirs(save_folder, exist_ok=True)
-
-            # Original filename
-            original_name = uploaded_bin.name
-            name_without_ext, ext = os.path.splitext(original_name)
-
-            # Default save path
-            save_path = os.path.join(save_folder, original_name)
-
-            # Check if file already exists → create copy versions
-            counter = 1
-            while os.path.exists(save_path):
-                new_name = f"{name_without_ext}_copy{counter}{ext}"
-                save_path = os.path.join(save_folder, new_name)
-                counter += 1
-
-            # Save the file
+            # Always rename uploaded file to 1.bin
+            save_path = os.path.join(save_folder, "1.bin")
+            # Save uploaded file as 1.bin
             with open(save_path, "wb") as f:
                 f.write(uploaded_bin.getbuffer())
-            bin_name = name_without_ext
+            bin_name = "1"   # without extension
+
+        # st.markdown(f"<span style='color:red;'>Remember that uploaded file in your C:/doe22/weather</span>", unsafe_allow_html=True)
+        # if uploaded_bin is not None:
+        #     # Define the save folder path
+        #     save_folder = r"C:\doe22\weather"
+        #     os.makedirs(save_folder, exist_ok=True)
+
+        #     # Original filename
+        #     original_name = uploaded_bin.name
+        #     name_without_ext, ext = os.path.splitext(original_name)
+
+        #     # Default save path
+        #     save_path = os.path.join(save_folder, original_name)
+
+        #     # Check if file already exists → create copy versions
+        #     counter = 1
+        #     while os.path.exists(save_path):
+        #         new_name = f"{name_without_ext}_copy{counter}{ext}"
+        #         save_path = os.path.join(save_folder, new_name)
+        #         counter += 1
+
+        #     # Save the file
+        #     with open(save_path, "wb") as f:
+        #         f.write(uploaded_bin.getbuffer())
+        #     bin_name = name_without_ext
             # st.success(f"File saved as: {os.path.basename(save_path)}")
         
 with col4:
@@ -358,7 +368,7 @@ with col4:
         inp_folder = output_inp_folder
 
         project_folder = os.path.join(batch_outputs_dir, project_name_clean)
-        
+
 run_cnt = 1
 location_id, weather_path = "", ""
 if user_input != "Other-City":
@@ -449,6 +459,8 @@ if st.button("Simulate 🚀"):
                 simulate_files.append(inp_file)
         
             subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+            # if os.path.exists(save_path):
+            #     os.remove(save_path)
             required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
             log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
             get_failed_simulation_data(batch_output_folder, log_file_path)

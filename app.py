@@ -1,0 +1,2013 @@
+import os, sys, time, webbrowser
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+from PIL import Image as PILImage
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import json
+import streamlit.components.v1 as components
+import pdfplumber
+import re
+import io
+import matplotlib.image as mpimg
+from streamlit.runtime.uploaded_file_manager import UploadedFile
+from io import BytesIO
+import time
+import random
+from datetime import datetime
+from shutil import copyfile
+import glob as gb
+import subprocess
+import shutil
+from pathlib import Path
+from collections import defaultdict
+import streamlit.web.cli as stcli
+from src import insertWall, insertConst, orient, lighting, equip, windows, insertRoof, wwr
+import traceback
+from helper import *
+from report_ext import *
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.enum.shapes import MSO_SHAPE
+from pptx.dml.color import RGBColor
+import statsmodels.api as sm 
+from src import ModifyWallRoof
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+import plotly.io as pio
+from src import lv_b, ls_c, lv_d, pv_a_loop, sv_a, beps, bepu, lvd_summary, sva_zone, locationInfo, masterFile, sva_sys_type, pv_a_pump, pv_a_heater, pv_a_equip, pv_a_tower, ps_e, inp_shgc
+
+
+# --- Streamlit Page Config ---
+st.set_page_config(page_title="AWECM Sim", page_icon="⚡", layout='wide')
+
+# --- Inject Custom CSS ---
+st.markdown("""
+    <style>
+        .block-container { padding-top: 0rem !important; }
+        header, main { margin-top: 0rem !important; padding-top: 0rem !important; }
+        .stButton>button { box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8); }
+        .heading-with-shadow {
+            text-align: left;
+            color: red;
+            text-shadow: 0px 8px 4px rgba(255, 255, 255, 0.4);
+            background-color: white;
+        }
+        body {
+            background-color: #bfe1ff;
+            animation: changeColor 5s infinite;
+        }
+        #MainMenu, footer, .viewerBadge_container__1QSob {visibility: hidden;}
+        header .stApp [title="View source on GitHub"] { display: none; }
+        .stApp header, .stApp footer {visibility: hidden;}
+        .stButton button {
+            height: 30px;
+            width: 166px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+def resource_path(relative_path):
+    """Get absolute path to resource (works for dev and PyInstaller exe)"""
+    if getattr(sys, 'frozen', False):  # Running in exe
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
+
+def remove_utility(inp_data):
+    start_marker = "Utility Rates"
+    end_marker = "Output Reporting"
+
+    start_index, end_index = None, None
+
+    # Find first occurrence of start_marker
+    for i, line in enumerate(inp_data):
+        if start_marker in line:
+            start_index = i + 3
+
+    # Find first occurrence of end_marker after start_marker
+    if start_index is not None:
+        for i, line in enumerate(inp_data[start_index:], start=start_index):
+            if end_marker in line:
+                end_index = i - 3
+                break
+
+    if start_index is None or end_index is None:
+        raise ValueError("Could not find section markers in INP file.")
+
+    # Remove everything between start_index and end_index (inclusive)
+    new_data = inp_data[:start_index] + inp_data[end_index + 1:]
+    return new_data
+
+def remove_betweenLightEquip(inp_data):
+    start_marker = "Floors / Spaces / Walls / Windows / Doors"
+    end_marker = "Electric & Fuel Meters"
+
+    start_index, end_index = None, None
+
+    # Find first occurrence of start_marker
+    for i, line in enumerate(inp_data):
+        if start_marker in line:
+            start_index = i + 2
+            break
+
+    # Find first occurrence of end_marker after start_marker
+    if start_index is not None:
+        for i, line in enumerate(inp_data[start_index:], start=start_index):
+            if end_marker in line:
+                end_index = i - 2
+                break
+
+    if start_index is None or end_index is None:
+        raise ValueError("Could not find section markers in INP file.")
+
+    new_data = []
+    cleaning = False  # to track inside LIGHTING/EQUIPMENT block
+
+    for i, line in enumerate(inp_data):
+        if start_index <= i <= end_index:
+            if line.strip().startswith("LIGHTING-W/AREA") or line.strip().startswith("EQUIPMENT-W/AREA"):
+                cleaning = True
+                new_data.append(line)  # keep the main line
+                continue
+            if cleaning:
+                if line.strip().startswith("*"):
+                    continue  # skip continuation lines
+                else:
+                    cleaning = False  # stop cleaning when normal line comes
+        new_data.append(line)
+
+    return new_data
+
+# Initialize session state for script_choice if it does not exist
+if 'script_choice' not in st.session_state:
+    st.session_state.script_choice = "set1"  # Set default to "about"
+# --- Header Section ---
+col1, _, col3, col4 = st.columns([0.4,2.4,0.3,0.2])
+with col1:
+    st.image("images/AWECMSimDhamaka.png")  # Logo
+with col3:
+    st.markdown(""" 
+    <style> 
+        /* Remove all button styles */
+        div.stButton > button { 
+            padding-top: 10px; 
+            border: none !important; 
+            background-color: transparent !important; 
+            padding: 0px !important; 
+            color: inherit !important; 
+            box-shadow: none !important; 
+        } 
+        /* Remove extra border/padding around button */
+        div.stButton { 
+            border: none !important; 
+            padding: 0 !important; 
+        } 
+    </style> """, unsafe_allow_html=True) 
+    home = st.button("🏠", type="tertiary")
+with col4:
+    st.image("images/EDSlogo.jpg") 
+st.markdown("""<div style='margin-top:-46px;'><hr style="border:1px solid red"></div>""",unsafe_allow_html=True)
+
+col1, col2, _ = st.columns([1,1,6])
+with col1:
+    if st.button("AWECM Sim"):
+        st.session_state.script_choice = "set1"
+with col2:
+    if st.button("Combination ECMs"):
+        st.session_state.script_choice = "set2"
+
+# ---- FULL PAGE WIDTH OVERRIDE ----
+if home:
+    with st.container():
+        # ---- MAIN TITLE (Left aligned, RED like your Word doc) ----
+        st.markdown("""
+        <h2 style="
+            font-weight:600;
+            font-size:30px;
+            margin-bottom:0px;
+        ">
+            <span style="color:red;"><i>AWECM</i></span>
+            <span style="color:black;"> Sim</span>
+        </h2>
+        """, unsafe_allow_html=True)
+
+        # ---- SUBTITLE ----
+        st.markdown("""
+        <div style="
+            font-size:16px;
+            margin-top:-10px;
+            margin-bottom:25px;
+        ">
+        Automating Workflows for Simulating Energy Conservation Measures
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---- MAIN BODY TEXT ----
+        st.markdown("""
+        <div style="font-size:16px; width:100%; text-align:justify; line-height:1.5;">
+        <b>Standardize, simplify and super-charge your analyses.</b><br>
+        AWECM Sim enables an energy simulation expert — that is you — to discover optimal design parameters through systematic parametric investigations in just a few clicks. These parametric investigations are
+        accessible through interactive charts and downloadable reports. We hope to keep improving this application to suit your needs.
+        Please feel free to share your feedback with us 
+        <a href="mailto:info@edsglobal.com" style="color:#1f4e79; text-decoration:underline;">here</a>.
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---- VERSION ----
+        st.markdown("""
+        <div style="
+            margin-top:25px;
+            font-size:15px;
+            color:#444444;
+        ">
+        <b>Version 01. Build 01</b> — Released on October 21, 2025
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---- DISCLAIMER ----
+        st.markdown("""
+        <br>
+        <h3 style="color:#002060; margin-bottom:5px;font-size:16px">Disclaimer</h3>
+        <div style="font-size:16px; width:100%; text-align:justify; line-height:1.5;">
+
+        <span style="color:red;"><i>AWECM</i></span>
+        <span style="color:#002060;"> <b>Sim</b></span>, referred to as ‘application’ hereafter, is an outcome of the best efforts of 
+        building simulation experts and IT developers at Environmental Design Solutions Limited (EDS).<br>
+        - While EDS has undertaken rigorous due diligence and testing of this application, EDS does not assume responsibility 
+        for the outcomes from this application. In using this tool, the ‘user’ indemnifies EDS of any damages whatsoever.<br>
+        - This application is hosted on private server space maintained by EDS. EDS does not undertake liability for maintaining 
+        availability of this application. In using this application, the user agrees to share the information uploaded on this 
+        application with EDS for performing analysis and conducting future research.<br>
+        - This application uses open-source or free-to-use resources. Please refer to their respective terms of use from time to time.<br>
+            - <a href="https://doe2.com/" target="_blank">DOE-2.2</a><br>
+            - <a href="https://streamlit.io/" target="_blank">Streamlit</a><br>
+            - <a href="https://www.python.org/" target="_blank">Python</a><br>
+        - EDS is not liable to inform the user about updates in terms of use of this application 
+        or the underlying resources.
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---- ACK ----
+        st.markdown("""
+        <h3 style="color:#002060; margin-bottom:5px;font-size:16px">Acknowledgement</h3>
+        <div style="font-size:16px; width:100%; line-height:1.5;">
+
+        This application uses:<br>
+
+        - <b>eQuest © James J. Hirsch & Associates</b> (under license)<br>
+        - <b>Streamlit © Streamlit Inc.</b> (Apache 2.0 License)<br>
+        - <b>Python © Python Software Foundation</b> (PSF License Version 2)<br>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---- ABOUT EDS ----
+        st.markdown("""
+        <h3 style="color:#002060; margin-bottom:5px;font-size:16px">About EDS</h3>
+        <div style="font-size:16px; width:100%; text-align:justify; line-height:1.5;">
+
+        Environmental Design Solutions (EDS) is a sustainability advisory firm focusing on the built environment.
+        Since its inception in 2002, EDS has worked on over 500 energy efficiency and green building projects worldwide.
+        The diverse expertise of its team converges on Climate change mitigation, Low-carbon buildings and systems design, Building performance simulation, Building performance audit, Training and capacity building<br>
+        EDS has synthesized its years of experience by developing IT applications to support these endeavours.
+        EDS continues to contribute to the buildings community with useful tools through its IT services.
+
+        </div>
+        """, unsafe_allow_html=True)
+
+# Load location database
+csv_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+weather_df = pd.read_csv(csv_path)
+db_path = resource_path(os.path.join("database", "AllData.xlsx"))
+output_csv = resource_path(os.path.join("database", "Randomized_Sheet.xlsx"))
+location_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+location = pd.read_csv(location_path)
+locations = sorted(location['Sim_location'].unique())
+updated_df = pd.read_excel(output_csv)
+
+updated_df["Wall_Roof_Glazing_WWR_Orient_Light_Equip"] = (
+    updated_df["Wall"].astype(str) + "_" +
+    updated_df["Roof"].astype(str) + "_" +
+    updated_df["Glazing"].astype(str) + "_" +
+    updated_df["WWR"].astype(str) + "_" +
+    updated_df["Orient"].astype(str) + "_" +
+    updated_df["Light"].astype(str) + "_" +
+    updated_df["Equip"].astype(str)
+)
+
+if st.session_state.script_choice == "set1":
+    # Inputs
+    col1, col2, col3, col4 = st.columns(4)
+    st.markdown("""
+        <style>
+        div[data-testid="stFileUploader"] section {
+            padding: 0.01rem 0 !important;  /* Reduce vertical padding */
+        }
+        div[data-testid="stFileUploader"] div[role="button"] {
+            padding: 0.0rem 0.0rem !important;  /* Reduce height of clickable area */
+            font-size: 0.00rem !important;      /* Smaller text */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    # --- NEW: handle both Country and Location ---
+    if "Country" in location.columns:
+        # If CSV already has Country column
+        countries = sorted(location["Country"].unique().tolist())
+    else:
+        # If your current CSV has only Indian cities — default to India
+        countries = ["India"]
+    with col1:
+        project_name = st.text_input("📝 Project Name", placeholder="Enter project name")
+        project_name_clean = project_name.replace(" ", "_")
+        user_nm = project_name_clean
+        if project_name_clean:
+            parent_dir = os.path.dirname(os.getcwd())
+            batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs")
+            project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+            # Check if project folder already exists
+            if os.path.exists(project_folder):
+                st.warning("⚠️ Project name already exists! Please select another name.")
+            #     st.stop()
+    with col2:
+        # Add "Other" option to countries
+        countries.append("Custom Weather")
+        selected_country = st.selectbox("🌎 Select Country", countries)
+
+        # Filter and sort locations for the selected country (if not "Other")
+        if selected_country != "Custom Weather":
+            if "Country" in location.columns:
+                filtered_locations = (
+                    location[location["Country"] == selected_country]["Sim_location"]
+                    .dropna()
+                    .unique()
+                    .tolist()
+                )
+                filtered_locations = sorted(filtered_locations)
+            else:
+                filtered_locations = sorted(location["Sim_location"].dropna().tolist())
+        else:
+            filtered_locations = []  # No locations for "Other"
+
+    bin_name = ""
+    # Only show City dropdown if not "Other"
+    if selected_country != "Custom Weather":
+        with col3:
+            user_input = st.selectbox("🌍 Select City", filtered_locations).lower()
+    else:
+        with col3:
+            user_input = "Other-City"
+            # When "Other" is selected, show .bin upload option
+            uploaded_bin = st.file_uploader("📤 Upload .bin file", type=["bin"])
+            if uploaded_bin is not None:
+                save_folder = r"C:\doe22\weather"
+                os.makedirs(save_folder, exist_ok=True)
+                # Always rename uploaded file to 1.bin
+                save_path = os.path.join(save_folder, "1.bin")
+                # Save uploaded file as 1.bin
+                with open(save_path, "wb") as f:
+                    f.write(uploaded_bin.getbuffer())
+                bin_name = "1"   # without extension
+            
+    with col4:
+        uploaded_file = st.file_uploader("📤 Upload eQUEST INP file", type=["inp"])
+        if uploaded_file:
+            # st.write(uploaded_file)
+            if uploaded_file.name != 'F1.inp':
+                uploaded_file.name = user_nm + '.inp'
+
+            # Go one step outside current working directory
+            parent_dir = os.path.dirname(os.getcwd())
+
+            # Create path for Batch_Outputs folder
+            batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs")
+
+            # Make sure the folder exists
+            os.makedirs(batch_outputs_dir, exist_ok=True)
+
+            # Save uploaded file in Batch_Outputs
+            uploaded_inp_path = os.path.join(batch_outputs_dir, uploaded_file.name)
+            with open(uploaded_inp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+
+            # Output folder = same folder where uploaded file is saved
+            output_inp_folder = os.path.dirname(uploaded_inp_path)
+            inp_folder = output_inp_folder
+
+            project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+        
+    run_cnt = 1
+    location_id, weather_path = "", ""
+    if user_input != "Other-City":
+        matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+        # st.write(matched_row)
+    else:
+        matched_row = pd.DataFrame()
+
+    if not matched_row.empty:
+        location_id = matched_row.iloc[0]['Location_ID']
+        weather_path = matched_row.iloc[0]['Weather_file']
+    elif user_input:
+        weather_path = bin_name
+
+    # Start simulation
+    if st.button("Simulate 🚀"):
+        if uploaded_file is None:
+            st.warning("⚠️ Please Upload .INP File!")
+            st.stop()
+        if bin_name is None:
+            st.warning("⚠️ Please Upload .BIN File!")
+            st.stop()
+        if not project_name_clean:
+            st.warning("⚠️ Please enter a project name.")
+            st.stop()
+        with st.spinner("⚡ Processing... This may take a few minutes."):
+            os.makedirs(output_inp_folder, exist_ok=True)
+            new_batch_id = f"{int(time.time())}"  # unique ID
+
+            selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
+            batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
+            os.makedirs(batch_output_folder, exist_ok=True)
+
+            num = 1
+            modified_files = []
+            for _, row in selected_rows.iterrows():
+                selected_inp = uploaded_file.name
+                new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['Orient']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
+                new_inp_path = os.path.join(batch_output_folder, new_inp_name)
+
+                inp_file_path = os.path.join(inp_folder, selected_inp)
+                if not os.path.exists(inp_file_path):
+                    st.error(f"File {inp_file_path} not found. Skipping.")
+                    continue
+
+                # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
+                num += 1
+
+                # Apply modifications
+                inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
+                # inp_content = orient.updateOrientation(inp_content, row["Orient"])
+                inp_content = lighting.updateLPD(inp_content, row['Light'])
+                # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
+                # inp_content = insertRoof.update_Material_Layers_Construction(inp_content, row["Roof"])
+                # inp_content = insertRoof.removeDuplicates(inp_content)
+                inp_content = equip.updateEquipment(inp_content, row['Equip'])
+                inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
+                inp_content =remove_utility(inp_content)
+                if row['Light'] > 0:
+                    inp_content =remove_betweenLightEquip(inp_content)
+                count = ModifyWallRoof.count_exterior_walls(inp_content)
+                if count > 1:
+                    inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
+                    inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
+                    # inp_content = insertRoof.removeDuplicates(inp_content)
+                    with open(new_inp_path, 'w') as file:
+                        file.writelines(inp_content)
+                    modified_files.append(new_inp_name)
+                else:
+                    st.write("No Exterior-Wall Exists!")
+        
+            simulate_files = []
+            # Copy and run batch script
+            if uploaded_file is None:
+                st.error("Please upload an INP file before starting the simulation.")
+            else:
+                st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
+                inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
+                for inp_file in inp_files:
+                    file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
+                    subprocess.call(
+                        [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
+                        shell=True
+                    )
+                    simulate_files.append(inp_file)
+            
+                subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+                if os.path.exists(save_path):
+                    os.remove(save_path)
+                required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
+                log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
+                get_failed_simulation_data(batch_output_folder, log_file_path)
+                clean_folder(batch_output_folder)
+                combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input)
+            logFile = pd.read_excel(log_file_path)
+            total_runs = len(updated_df)
+            total_sims = len(logFile)
+            success_count = (logFile["Status"] == "Success").sum()
+            success_rate = (success_count / total_sims) * 100 if total_sims > 0 else 0
+
+        # st.write(combined_Data)
+        combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
+        combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
+        wall_to_rvalue = {
+            1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0,
+            5: 12.5, 6: 15.0, 7: 17.5, 8: 20.0,
+            9: 22.5, 10: 25.0, 11: 27.5, 12: 30.0
+        }
+
+        # Extract wall and roof codes
+        combined_Data["WallCode"] = combined_Data["FileName"].str.split("_").str[0].astype(int)
+        combined_Data["RoofCode"] = combined_Data["FileName"].str.split("_").str[1].astype(int)
+
+        # Map to R-values
+        combined_Data["R-Value-Wall"] = combined_Data["WallCode"].map(wall_to_rvalue)
+        combined_Data["R-Value-Roof"] = combined_Data["RoofCode"].map(wall_to_rvalue)
+        # st.write(combined_Data)
+        # Drop intermediate columns if you don’t need them
+        combined_Data.drop(columns=["WallCode", "RoofCode"], inplace=True)
+
+        # Split FileName into parts
+        split_cols = combined_Data['FileName'].str.split("_", expand=True)
+
+        # Assign names to first 8 parts
+        split_cols.columns = ["wall", "roof", "glazing", "orient", "light", "wwr", "equip", "suffix"]
+
+        # Convert numeric columns (except suffix)
+        for col in split_cols.columns[:-1]:
+            split_cols[col] = pd.to_numeric(split_cols[col], errors="coerce")
+
+        # Merge back
+        combined_Data_expanded = pd.concat([combined_Data, split_cols], axis=1)
+
+        # Filter subsets
+        wall_df    = combined_Data_expanded[(combined_Data_expanded["wall"] > 0) | (combined_Data_expanded.index == 0)]
+        roof_df    = combined_Data_expanded[(combined_Data_expanded["roof"] > 0) | (combined_Data_expanded.index == 0)]
+        glazing_df = combined_Data_expanded[(combined_Data_expanded["glazing"] > 0) | (combined_Data_expanded.index == 0)]
+        wwr_df     = combined_Data_expanded[(combined_Data_expanded["wwr"] > 0) | (combined_Data_expanded.index == 0)]
+        orient_df  = combined_Data_expanded[(combined_Data_expanded["orient"] > 0) | (combined_Data_expanded.index == 0)]
+        light_df   = combined_Data_expanded[(combined_Data_expanded["light"] > 0) | (combined_Data_expanded.index == 0)]
+        equip_df   = combined_Data_expanded[(combined_Data_expanded["equip"] > 0) | (combined_Data_expanded.index == 0)]
+
+        wall_roof_df = pd.concat([
+            wall_df.assign(Variable="Wall", X=wall_df["N-Wall-U-Value(BTU/HR-SQFT-F)"]),
+            roof_df.assign(Variable="Roof", X=roof_df["ROOF-U-Value(BTU/HR-SQFT-F)"])
+        ])
+
+        light_equip_df = pd.concat([
+            light_df.assign(Variable="Lighting", X=light_df["Light(W/Sqft)"]),
+            equip_df.assign(Variable="Equipment", X=equip_df["Equip(W/Sqft)"])
+        ])
+
+        glazing_df = pd.concat([
+            glazing_df.assign(Variable="Glazing", X=glazing_df["SC"])
+        ])
+
+        # Common y-axis range
+        y_min = combined_Data_expanded["Energy_Outcome(KWH)"].min()
+        y_max = combined_Data_expanded["Energy_Outcome(KWH)"].max()
+
+        def make_savings_wwr_barplot(df, title="Energy Savings vs WWR", x_label="Window-to-Wall Ratio"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to Baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Melt EUI & WWR into one column for plotting (if multiple types, else just use WWR)
+            df_melt = pd.melt(
+                df,
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["WWR"],  # replace/add if multiple types
+                var_name="Variable",
+                value_name="WWR_Value"
+            )
+
+            # Plot
+            fig = px.bar(
+                df_melt.iloc[1:],  # exclude baseline
+                x="WWR_Value",
+                y="PercentSaving",
+                color="Variable",
+                barmode="group",
+                text="PercentSaving",
+                labels={
+                    "WWR_Value": x_label,
+                    "PercentSaving": "% Saving",
+                    "Variable": "Component"
+                },
+                color_discrete_map={"WWR": "blue"}  # color choice
+            )
+
+            # Tooltip
+            fig.update_traces(
+                hovertemplate=(
+                    "<b>WWR: %{x:.2}</b><br>"
+                    "<b>EUI: %{customdata[0]:,.0f} kWh</b><br>"
+                    "<b>%{y:.1f}% Saving</b><extra></extra>"
+                ),
+                customdata=df_melt.iloc[1:][["Energy_Outcome(KWH)"]].to_numpy(),
+                textposition="outside",
+                textfont=dict(size=16)
+            )
+
+            # Legend at bottom & rename
+            fig.for_each_trace(lambda t: t.update(name=t.name.replace("WWR", "WWR")))
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",
+                    yanchor="top",
+                    y=-0.21,
+                    xanchor="center",
+                    x=0.5,
+                    title=None
+                ),
+                yaxis_title="% Saving",
+                xaxis_title=x_label,
+                yaxis=dict(tickformat=".0f"),
+                bargap=0.35
+            )
+
+            return fig
+        
+        def make_savings_wwr_barplot_matplotlib(df, title="Energy Savings vs WWR", x_label="Window-to-Wall Ratio"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Drop baseline (first row) to match Plotly
+            df_plot = df.iloc[1:].reset_index(drop=True)
+
+            # X positions
+            x_values = df_plot["WWR"].values
+            x = np.arange(len(x_values))
+            width = 0.6
+
+            fig, ax = plt.subplots(figsize=(10,6))
+
+            # Bars
+            ax.bar(x, df_plot["PercentSaving"], width, color="blue")
+
+            # Add text labels
+            for i, val in enumerate(df_plot["PercentSaving"]):
+                ax.text(x[i], val + 0.5, f"{val:.1f}%", ha="center", va="bottom", fontsize=10)
+
+            # X-axis labels
+            ax.set_xticks(x)
+            ax.set_xticklabels([f"{v:.2f}" for v in x_values])
+
+            # Labels & title
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("% Saving")
+            ax.set_title(title)
+
+            # Grid & layout
+            ax.grid(axis='y', alpha=0.3)
+            plt.tight_layout()
+
+            return fig
+
+        def make_combined_barplot(df, title, x_label):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            # Reference values for "As Designed"
+            reference = df[df["CaseType"] == "As Designed"].iloc[0]
+            reference_x = reference["X"]
+            reference_energy = reference["Energy_Outcome(KWH)"]
+
+            # % change in Power Density (X-axis)
+            df["% Change in Power Density"] = (((reference_x - df["X"]).abs() / reference_x) * 100).round(0)
+
+            # % saving in Energy (Y-axis)
+            df["% Saving in Energy"] = (((reference_energy - df["Energy_Outcome(KWH)"]) / reference_energy) * 100).round(0)
+
+            # Bar chart instead of scatter
+            fig = px.bar(
+                df,
+                x="X",
+                y="Energy_Outcome(KWH)",
+                color="Variable",  # Lighting / Equipment
+                pattern_shape="CaseType",  # Different fill patterns for As Designed vs ECM
+                barmode="group",
+                color_discrete_map={"Lighting": "lightblue", "Equipment": "orange"}
+            )
+
+            # Hover with both % saving and % change in PD
+            fig.update_traces(
+                hovertemplate=(
+                    f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                    "<b>Energy Use (kWh)</b>: %{y:.2f}<br>"
+                    "<b>% Saving in Energy</b>: %{customdata[0]:.0f}%<br>"
+                    "<b>% Change in Power Density</b>: %{customdata[1]:.0f}%"
+                    "<extra></extra>"
+                ),
+                customdata=df[["% Saving in Energy", "% Change in Power Density"]].values
+            )
+
+            # Layout
+            fig.update_layout(
+                # title=title,
+                xaxis_title=x_label,
+                yaxis_title="Energy Use (kWh)",
+                yaxis=dict(tickformat=","),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                bargap=0.25
+            )
+
+            return fig
+        
+        def make_combined_savings_barplot(df, title="Energy Savings vs R-Value", x_label="R-Value (ft²·F·hr/BTU)"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to Baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Melt Wall & Roof into one column for plotting
+            df_melt = pd.melt(
+                df,
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["R-Value-Wall", "R-Value-Roof"],
+                var_name="Variable",
+                value_name="R_Value"
+            )
+
+            # Plot
+            fig = px.bar(
+                df_melt.iloc[1:],  # exclude baseline
+                x="R_Value",
+                y="PercentSaving",
+                color="Variable",
+                barmode="group",
+                text="PercentSaving",
+                labels={
+                    "R_Value": x_label,
+                    "PercentSaving": "% Saving",
+                    "Variable": "Component"
+                },
+                color_discrete_map={"R-Value-Wall": "blue", "R-Value-Roof": "red"}
+            )
+
+            # Tooltip
+            fig.update_traces(
+                hovertemplate=(
+                    "<b>R-Value: %{x}</b><br>"
+                    "<b>EUI: %{customdata[0]:,.0f} kWh</b><br>"
+                    "<b>%{y:.1f}% Saving</b><extra></extra>"
+                ),
+                customdata=df_melt.iloc[1:][["Energy_Outcome(KWH)"]].to_numpy(),
+                textposition="outside",
+                textfont=dict(size=16)  # Increase text size for % Saving
+            )
+
+            # Layout adjustments
+            fig.update_layout(
+                yaxis_title="% Saving",
+                xaxis_title=x_label,
+                yaxis=dict(tickformat=".0f"),
+                bargap=0.35  # Decrease gap → thicker bars
+            )
+
+            # Rename legend items (Wall, Roof)
+            fig.for_each_trace(lambda t: t.update(name=t.name.replace("R-Value-", "")))
+
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",          # horizontal legend
+                    yanchor="top",
+                    y=-0.21,                  # move below chart
+                    xanchor="center",
+                    x=0.5,
+                    title=None                # remove "Component" title
+                )
+            )
+
+            # --- Custom x-axis labels ---
+            # Get unique R-Values used in plotting
+            unique_rvalues = sorted(df_melt["R_Value"].unique())
+            # Create ticktext like +R2.5, +R5, ...
+            ticktext = [f"+R{v}" for v in unique_rvalues]
+
+            fig.update_xaxes(
+                tickvals=unique_rvalues,
+                ticktext=ticktext
+            )
+
+            return fig
+
+        # Example mapping for LPD/EPD
+        lpd_map = {1: 0.1, 2: 0.15, 3: 0.2, 4: 0.25, 5: 0.3}
+        def make_savings_lpd_epd_barplot(df, title="EUI Savings vs LPD/EPD", x_label="Power Density (W/ft²)"):
+            df = df.copy()
+
+            # Baseline Energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to Baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Extract LPD & EPD codes from FileName (7th and 8th values after splitting by '_')
+            df["LPD_Code"] = df["FileName"].str.split("_").str[4].astype(int)
+            df["EPD_Code"] = df["FileName"].str.split("_").str[6].astype(int)
+
+            # Map to actual LPD/EPD values
+            df["LPD_Value"] = df["LPD_Code"].map(lpd_map)
+            df["EPD_Value"] = df["EPD_Code"].map(lpd_map)
+
+            # ✅ Multiply LPD & EPD by 100
+            df["LPD_Value"] = df["LPD_Value"] * 100
+            df["EPD_Value"] = df["EPD_Value"] * 100
+
+            # Melt into one column for plotting
+            df_melt = pd.melt(
+                df,
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["LPD_Value", "EPD_Value"],
+                var_name="Variable",
+                value_name="X_Value"
+            )
+
+            # Plot
+            fig = px.bar(
+                df_melt.iloc[1:],  # exclude baseline
+                x="X_Value",
+                y="PercentSaving",
+                color="Variable",
+                barmode="group",
+                text="PercentSaving",
+                labels={
+                    "X_Value": x_label,
+                    "PercentSaving": "% Saving",
+                    "Variable": "Component"
+                },
+                # title=title,
+                color_discrete_map={"LPD_Value": "blue", "EPD_Value": "red"}
+            )
+
+            # Tooltip + Text Styling
+            fig.update_traces(
+                hovertemplate=(
+                    # "<b>Power Density Change(): %{x*100}</b><br>"
+                    "<b>EUI: %{customdata[0]:,.0f} kWh</b><br>"
+                    "<b>%{y:.1f}% Saving</b><extra></extra>"
+                ),
+                customdata=df_melt.iloc[1:][["Energy_Outcome(KWH)"]].to_numpy(),
+                textposition="outside",
+                textfont=dict(size=16)
+            )
+
+            # Layout → thinner bars
+            fig.update_layout(
+                yaxis_title="% Saving",
+                xaxis_title=x_label,
+                yaxis=dict(tickformat=".0f"),
+                bargap=0.35,
+                legend_title="Component"
+            )
+
+            # --- Add this after fig creation ---
+            fig.for_each_trace(lambda t: t.update(name=t.name.replace("_Value", "").replace("LPD", "Lighting").replace("EPD", "Equipment")))
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",          # horizontal legend
+                    yanchor="top",
+                    y=-0.21,                  # move below chart
+                    xanchor="center",
+                    x=0.5,
+                    title=None                # remove "Component" title
+                )
+            )
+            fig.update_xaxes(
+                tickvals=[x for x in sorted(df_melt["X_Value"].dropna().unique())],
+                ticktext=[f"{int(x)}%" for x in sorted(df_melt["X_Value"].dropna().unique())]
+            )
+
+            return fig
+        
+        def make_savings_lpd_epd_barplot_matplotlib(df, title="EUI Savings vs PD", x_label="Power Density (W/ft²)"):
+            df = df.copy()
+
+            # Baseline
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # % Saving
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Extract codes
+            df["LPD_Code"] = df["FileName"].str.split("_").str[4].astype(int)
+            df["EPD_Code"] = df["FileName"].str.split("_").str[6].astype(int)
+
+            # Map to actual values
+            df["LPD_Value"] = df["LPD_Code"].map(lpd_map)
+            df["EPD_Value"] = df["EPD_Code"].map(lpd_map)
+
+            # ---- MATCH PLOTLY EXACTLY: drop baseline BEFORE melt ----
+            df_plot = df.iloc[1:].copy()   # Equivalent to df_melt.iloc[1:]
+
+            # Melt
+            df_melt = df_plot.melt(
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["LPD_Value", "EPD_Value"],
+                var_name="Variable",
+                value_name="X_Value"
+            )
+
+            # Replace names like Plotly
+            df_melt["Variable"] = df_melt["Variable"].str.replace("_Value", "", regex=False)
+            df_melt["Variable"] = df_melt["Variable"].replace({"LPD": "Lighting", "EPD": "Equipment"})
+
+            # === Build Plot ===
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Unique x positions (LPD + EPD per case)
+            x_values = sorted(df_melt["X_Value"].unique())
+            x = np.arange(len(x_values))  # base positions
+            width = 0.35
+
+            # LPD subset
+            lighting = df_melt[df_melt["Variable"] == "Lighting"]
+            equipment = df_melt[df_melt["Variable"] == "Equipment"]
+
+            # IMPORTANT: Align by x_values to avoid mismatch
+            lighting_vals = []
+            equipment_vals = []
+            for xv in x_values:
+                # find the row with this x_value (LPD or EPD)
+                l_val = lighting[lighting["X_Value"] == xv]["PercentSaving"]
+                e_val = equipment[equipment["X_Value"] == xv]["PercentSaving"]
+
+                lighting_vals.append(l_val.iloc[0] if not l_val.empty else np.nan)
+                equipment_vals.append(e_val.iloc[0] if not e_val.empty else np.nan)
+
+            # Plot bars
+            ax.bar(x - width/2, lighting_vals, width, label="Lighting", color="blue")
+            ax.bar(x + width/2, equipment_vals, width, label="Equipment", color="red")
+
+            # Labels
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("% Saving")
+            ax.set_xticks(x)
+            ax.set_xticklabels([str(v) for v in x_values])
+            ax.set_title(title)
+
+            # Add text on bars
+            for i, val in enumerate(lighting_vals):
+                if not np.isnan(val):
+                    ax.text(i - width/2, val, f"{val:.1f}%", ha="center", va="bottom", fontsize=10)
+
+            for i, val in enumerate(equipment_vals):
+                if not np.isnan(val):
+                    ax.text(i + width/2, val, f"{val:.1f}%", ha="center", va="bottom", fontsize=10)
+
+            # Legend (horizontal, bottom, center)
+            ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
+
+            fig.tight_layout()
+            return fig
+
+        import plotly.graph_objects as go
+        def make_combined_plot(df, title, x_label):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            reference_x = df[df["CaseType"] == "As Designed"].iloc[0]["X"]
+            df["PercentChange"] = (((reference_x - df["X"]).abs() / reference_x) * 100).round(0)
+
+            # Human readable numbers
+            def human_readable(num):
+                if num >= 1_000_000_000:
+                    return f"{num/1_000_000_000:.1f}B (Billion)"
+                elif num >= 1_000_000:
+                    return f"{num/1_000_000:.1f}M (Million)"
+                elif num >= 1_000:
+                    return f"{num/1_000:.1f}k (Thousand)"
+                else:
+                    return str(num)
+
+            df["Energy_human"] = df["Energy_Outcome(KWH)"].apply(human_readable)
+            df["PercentChangeAdj"] = df["PercentChange"] + 5
+
+            # Assign only red and blue alternately to each parameter
+            colors = ["red", "blue"]
+            unique_vars = df["Variable"].unique()
+            color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
+
+            fig = go.Figure()
+
+            for variable in unique_vars:
+                color = color_map[variable]
+                subset = df[df["Variable"] == variable]
+
+                # ECM – filled circle
+                ecm_df = subset[subset["CaseType"] == "ECM"]
+                fig.add_trace(go.Scatter(
+                    x=ecm_df["X"],
+                    y=ecm_df["Energy_Outcome(KWH)"],
+                    mode="markers",
+                    name=f"{variable} - ECM",
+                    marker=dict(size=12, color=color, line=dict(width=1, color="black"), symbol="circle", opacity=0.9),
+                    customdata=ecm_df[["Energy_human", "PercentChangeAdj"]].values,
+                    hovertemplate=(
+                        f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                        "<b>Energy Use</b>: %{customdata[0]}<br>"
+                        # "<b>% Change from As Designed</b>: %{customdata[1]:.0f}%<extra></extra>"
+                    )
+                ))
+
+                # As Designed – unfilled circle
+                ad_df = subset[subset["CaseType"] == "As Designed"]
+                fig.add_trace(go.Scatter(
+                    x=ad_df["X"],
+                    y=ad_df["Energy_Outcome(KWH)"],
+                    mode="markers",
+                    name=f"{variable} - As Designed",
+                    marker=dict(size=12, color="white", line=dict(width=2, color=color), symbol="circle", opacity=0.95),
+                    customdata=ad_df[["Energy_human", "PercentChangeAdj"]].values,
+                    hovertemplate=(
+                        f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                        "<b>Energy Use</b>: %{customdata[0]}<br>"
+                        # "<b>% Change from As Designed</b>: %{customdata[1]:.0f}%<extra></extra>"
+                    )
+                ))
+
+            fig.update_layout(
+                # title=title,
+                xaxis_title=x_label,
+                yaxis_title="Energy Use (kWh, K=Thousand, M=Million, B=Billion)",
+                yaxis=dict(tickformat="~s"),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                showlegend=True
+            )
+
+            return fig
+        
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        def make_combined_plot_matplotlib(df, title, x_label):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            reference_x = df[df["CaseType"] == "As Designed"].iloc[0]["X"]
+            df["PercentChange"] = (((reference_x - df["X"]).abs() / reference_x) * 100).round(0)
+
+            def human_readable(num):
+                if num >= 1_000_000_000:
+                    return f"{num/1_000_000_000:.1f}B"
+                elif num >= 1_000_000:
+                    return f"{num/1_000_000:.1f}M"
+                elif num >= 1_000:
+                    return f"{num/1_000:.1f}k"
+                else:
+                    return str(num)
+
+            df["Energy_human"] = df["Energy_Outcome(KWH)"].apply(human_readable)
+            df["PercentChangeAdj"] = df["PercentChange"] + 5
+
+            colors = ["red", "blue"]
+            unique_vars = df["Variable"].unique()
+            color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            for variable in unique_vars:
+                color = color_map[variable]
+                subset = df[df["Variable"] == variable]
+
+                # ECM – filled circle
+                ecm_df = subset[subset["CaseType"] == "ECM"]
+                ax.scatter(
+                    ecm_df["X"],
+                    ecm_df["Energy_Outcome(KWH)"],
+                    s=100,
+                    color=color,
+                    edgecolor="black",
+                    alpha=0.9,
+                    label=f"{variable} - ECM",
+                )
+
+                # As Designed – unfilled circle
+                ad_df = subset[subset["CaseType"] == "As Designed"]
+                ax.scatter(
+                    ad_df["X"],
+                    ad_df["Energy_Outcome(KWH)"],
+                    s=100,
+                    facecolors="none",
+                    edgecolor=color,
+                    linewidth=2,
+                    alpha=0.95,
+                    label=f"{variable} - As Designed",
+                )
+
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel("Energy Use (kWh, K=Thousand, M=Million, B=Billion)", fontsize=12)
+            ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.3), ncol=2)
+            ax.grid(alpha=0.3)
+
+            plt.tight_layout()
+            return fig
+        
+        def make_savings_barplot_matplotlib(df, title="Energy Savings vs R-Value", x_label="R-Value (ft²·F·hr/BTU)"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Variables to plot
+            variables = ["R-Value-Wall", "R-Value-Roof"]
+            colors = ["blue", "red"]
+
+            # Exclude baseline row for plotting
+            plot_df = df.iloc[1:].reset_index(drop=True)
+
+            # Bar positions
+            x = np.arange(len(plot_df))
+            width = 0.35  # width of each bar
+
+            fig, ax = plt.subplots(figsize=(10,6))
+
+            # Plot each variable
+            for i, var in enumerate(variables):
+                ax.bar(
+                    x + i*width,
+                    plot_df["PercentSaving"],
+                    width=width,
+                    color=colors[i],
+                    label=var.replace("R-Value-", "")
+                )
+
+                # Add value labels
+                for xi, val in zip(x + i*width, plot_df["PercentSaving"]):
+                    ax.text(xi, val + 0.5, f"{val:.1f}%", ha='center', va='bottom', fontsize=12)
+
+            # Set x-ticks to be in the center of the group
+            ax.set_xticks(x + width/2)
+            # Use actual R-values as tick labels (for Wall)
+            ax.set_xticklabels([f"{val}" for val in plot_df["R-Value-Wall"]], fontsize=12)
+
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel("% Saving", fontsize=12)
+            ax.set_title(title, fontsize=14)
+
+            # Legend below chart
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2)
+            ax.grid(alpha=0.3)
+
+            plt.tight_layout()
+            return fig
+        
+        def make_scatter_case_type_matplotlib(df, col, x_label, y_min=None, y_max=None, title="Energy Use"):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            fig, ax = plt.subplots(figsize=(8,6))
+
+            colors = {"As Designed": "red", "ECM": "blue"}
+            marker_size = 120  # Matplotlib marker size in points² (roughly similar to Plotly size=12)
+            alpha = 0.85
+
+            for case_type, group in df.groupby("CaseType"):
+                ax.scatter(
+                    group[col],
+                    group["Energy_Outcome(KWH)"],
+                    s=marker_size,
+                    c=colors[case_type],
+                    alpha=alpha,
+                    label=case_type,
+                    edgecolor="black"
+                )
+            
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("Energy Use (kWh, K=Thousand, M=Million, B=Billion)")
+            ax.set_title(title)
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
+            if y_min is not None and y_max is not None:
+                ax.set_ylim([y_min, y_max])
+            ax.grid(alpha=0.3)
+            plt.tight_layout()
+            return fig
+        
+        def make_savings_sc_barplot_matplotlib(df, title="Energy Savings vs SC", x_label="Shading Coefficient (SC)"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to Baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Melt EUI & WWR into one column for plotting (if multiple types, else just use WWR)
+            df_melt = pd.melt(
+                df,
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["SC"],  # replace/add if multiple types
+                var_name="Variable",
+                value_name="WWR_Value"
+            )
+
+            # Plot
+            fig = px.bar(
+                df_melt.iloc[1:],  # exclude baseline
+                x="WWR_Value",
+                y="PercentSaving",
+                color="Variable",
+                barmode="group",
+                text="PercentSaving",
+                labels={
+                    "WWR_Value": x_label,
+                    "PercentSaving": "% Saving",
+                    "Variable": "Component"
+                },
+                color_discrete_map={"SC": "blue"}  # color choice
+            )
+
+            # Tooltip
+            fig.update_traces(
+                hovertemplate=(
+                    "<b>SC: %{x:.2}</b><br>"
+                    "<b>EUI: %{customdata[0]:,.0f} kWh</b><br>"
+                    "<b>%{y:.1f}% Saving</b><extra></extra>"
+                ),
+                customdata=df_melt.iloc[1:][["Energy_Outcome(KWH)"]].to_numpy(),
+                textposition="outside",
+                textfont=dict(size=16)
+            )
+
+            # Legend at bottom & rename
+            fig.for_each_trace(lambda t: t.update(name=t.name.replace("SC", "SC")))
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",
+                    yanchor="top",
+                    y=-0.21,
+                    xanchor="center",
+                    x=0.5,
+                    title=None
+                ),
+                yaxis_title="% Saving",
+                xaxis_title=x_label,
+                yaxis=dict(tickformat=".0f"),
+                bargap=0.35
+            )
+
+            return fig
+        
+        import plotly.express as px
+        def make_combined_plot_window_matplotlib(df, title, x_label):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            reference_x = df[df["CaseType"] == "As Designed"].iloc[0]["X"]
+            df["PercentChange"] = (((reference_x - df["X"]).abs() / reference_x) * 100).round(0)
+
+            # Human readable numbers
+            def human_readable(num):
+                if num >= 1_000_000_000:
+                    return f"{num/1_000_000_000:.1f}B"
+                elif num >= 1_000_000:
+                    return f"{num/1_000_000:.1f}M"
+                elif num >= 1_000:
+                    return f"{num/1_000:.1f}k"
+                else:
+                    return str(num)
+
+            df["Energy_human"] = df["Energy_Outcome(KWH)"].apply(human_readable)
+
+            # Normalize U-value for marker size
+            u_min = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].min()
+            u_max = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].max()
+            size_min = 50
+            size_max = 300
+
+            def u_to_size(u):
+                return size_min + (u - u_min) / (u_max - u_min) * (size_max - size_min)
+
+            # Create figure and axis
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            unique_vars = df["Variable"].unique()
+            colors = ["red", "blue"]
+            color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
+
+            for variable in unique_vars:
+                subset = df[df["Variable"] == variable]
+                
+                # ECM – filled circle
+                ecm_df = subset[subset["CaseType"] == "ECM"]
+                ax.scatter(
+                    ecm_df["X"],
+                    ecm_df["Energy_Outcome(KWH)"],
+                    s=ecm_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    c="blue",
+                    label=f"ECM",
+                    alpha=0.7,
+                    edgecolors="black"
+                )
+                
+                # As Designed – unfilled circle
+                ad_df = subset[subset["CaseType"] == "As Designed"]
+                ax.scatter(
+                    ad_df["X"],
+                    ad_df["Energy_Outcome(KWH)"],
+                    s=ad_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    facecolors='red',
+                    edgecolors="red",
+                    linewidths=2,
+                    label=f"As Designed"
+                )
+
+            ax.set_title(title)
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("Energy Use (kWh)")
+            ax.legend()
+            ax.grid(True)
+
+            return fig, ax
+
+        def make_combined_scatter(df, title, x_label):
+            df = df.copy()
+            df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+
+            reference_x = df[df["CaseType"] == "As Designed"].iloc[0]["X"]
+            df["PercentChange"] = (((reference_x - df["X"]).abs() / reference_x) * 100).round(0)
+
+            # Human readable numbers
+            def human_readable(num):
+                if num >= 1_000_000_000:
+                    return f"{num/1_000_000_000:.1f}B (Billion)"
+                elif num >= 1_000_000:
+                    return f"{num/1_000_000:.1f}M (Million)"
+                elif num >= 1_000:
+                    return f"{num/1_000:.1f}k (Thousand)"
+                else:
+                    return str(num)
+
+            df["Energy_human"] = df["Energy_Outcome(KWH)"].apply(human_readable)
+            df["PercentChangeAdj"] = df["PercentChange"] + 5
+
+            # Assign only red and blue alternately to each parameter
+            colors = ["red", "blue"]
+            unique_vars = df["Variable"].unique()
+            color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
+
+            # Normalize U-value for marker size
+            u_col = "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"
+            u_min = df[u_col].min(skipna=True)
+            u_max = df[u_col].max(skipna=True)
+            size_min = 8
+            size_max = 25
+
+            # Warn if NaN U-values found
+            if df[u_col].isna().any():
+                print("⚠️ Warning: Missing U-values found. Using minimum U-value for those entries.")
+                df[u_col] = df[u_col].fillna(u_min)
+
+            def u_to_size(u):
+                # Handle identical or NaN min/max cases
+                if pd.isna(u_min) or pd.isna(u_max) or u_min == u_max or pd.isna(u):
+                    return size_min  # fallback default
+                # Scale U-value to marker size
+                return size_min + (u - u_min) / (u_max - u_min) * (size_max - size_min)
+
+            # Create Plotly figure
+            fig = go.Figure()
+
+            for variable in unique_vars:
+                color = color_map[variable]
+                subset = df[df["Variable"] == variable]
+
+                # ECM – filled circle
+                ecm_df = subset[subset["CaseType"] == "ECM"]
+                fig.add_trace(go.Scatter(
+                    x=ecm_df["X"],
+                    y=ecm_df["Energy_Outcome(KWH)"],
+                    mode="markers",
+                    name="ECM",
+                    marker=dict(
+                        size=ecm_df[u_col].apply(u_to_size),
+                        color="blue",
+                        line=dict(width=1, color="blue"),
+                        symbol="circle",
+                        opacity=0.9
+                    ),
+                    customdata=ecm_df[["Energy_human", "PercentChangeAdj", u_col]].values,
+                    hovertemplate=(
+                        f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                        "<b>Energy Use</b>: %{customdata[0]}<br>"
+                        "<b>U-Value</b>: %{customdata[2]:.3f} BTU/hr·ft²·°F<extra></extra>"
+                    )
+                ))
+
+                # As Designed – unfilled circle
+                ad_df = subset[subset["CaseType"] == "As Designed"]
+                fig.add_trace(go.Scatter(
+                    x=ad_df["X"],
+                    y=ad_df["Energy_Outcome(KWH)"],
+                    mode="markers",
+                    name="As Designed",
+                    marker=dict(
+                        size=ad_df[u_col].apply(u_to_size),
+                        color="red",
+                        line=dict(width=2, color="red"),
+                        symbol="circle",
+                        opacity=0.95
+                    ),
+                    customdata=ad_df[["Energy_human", "PercentChangeAdj", u_col]].values,
+                    hovertemplate=(
+                        f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                        "<b>Energy Use</b>: %{customdata[0]}<br>"
+                        "<b>U-Value</b>: %{customdata[2]:.3f} BTU/hr·ft²·°F<extra></extra>"
+                    )
+                ))
+
+            # Layout formatting
+            fig.update_layout(
+                title=title,
+                xaxis_title=x_label,
+                yaxis_title="Energy Use (kWh, K=Thousand, M=Million, B=Billion)",
+                yaxis=dict(tickformat="~s"),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5
+                ),
+                showlegend=True
+            )
+
+            return fig
+
+        def make_savings_window_matplotlib(df, title="Energy Savings vs SC", x_label="Shading Coefficient (SC)"):
+            df = df.copy()
+
+            # Baseline energy
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+
+            # Compute % Saving relative to Baseline
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Exclude baseline row for plotting
+            plot_df = df.iloc[1:].copy()
+
+            # Bar plot
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            x_values = plot_df["SC"]
+            y_values = plot_df["PercentSaving"]
+
+            bars = ax.bar(x_values, y_values, color="blue", edgecolor="black", width=0.6)
+
+            # Annotate bars with percent savings
+            for bar, percent in zip(bars, y_values):
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2, height + 0.5, f"{percent}%", ha='center', va='bottom', fontsize=12)
+
+            # Labels and title
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("% Saving")
+            ax.set_title(title)
+            ax.grid(axis="y", linestyle="--", alpha=0.7)
+            
+            return fig, ax
+        
+        def make_combined_savings_barplot_matplotlib(df, title="Energy Savings vs R-Value", x_label="R-Value"):
+            df = df.copy()
+
+            baseline_energy = df.iloc[0]["Energy_Outcome(KWH)"]
+            df["PercentSaving"] = ((baseline_energy - df["Energy_Outcome(KWH)"]) / baseline_energy * 100).round(1)
+
+            # Drop baseline
+            df_plot = df.iloc[1:].reset_index(drop=True)
+
+            # Melt Wall & Roof like Plotly
+            df_melt = df_plot.melt(
+                id_vars=["Energy_Outcome(KWH)", "PercentSaving"],
+                value_vars=["R-Value-Wall", "R-Value-Roof"],
+                var_name="Variable",
+                value_name="R_Value"
+            )
+
+            df_melt["R_Value"] = df_melt["R_Value"].astype(float)  # ensure numeric
+
+            # X positions for grouped bars
+            x = np.arange(len(df_plot))
+            width = 0.35
+
+            fig, ax = plt.subplots(figsize=(10,6))
+
+            # Separate Wall & Roof
+            wall_data = df_melt[df_melt["Variable"] == "R-Value-Wall"]
+            roof_data = df_melt[df_melt["Variable"] == "R-Value-Roof"]
+
+            # Bars
+            ax.bar(x - width/2, wall_data["PercentSaving"].values, width, color="blue", label="Wall")
+            ax.bar(x + width/2, roof_data["PercentSaving"].values, width, color="red", label="Roof")
+
+            # Add text
+            for i in range(len(x)):
+                ax.text(x[i] - width/2, wall_data["PercentSaving"].values[i]+0.5,
+                        f"{wall_data['PercentSaving'].values[i]:.1f}%", ha="center", va="bottom", fontsize=10)
+                ax.text(x[i] + width/2, roof_data["PercentSaving"].values[i]+0.5,
+                        f"{roof_data['PercentSaving'].values[i]:.1f}%", ha="center", va="bottom", fontsize=10)
+
+            # X-axis labels
+            ax.set_xticks(x)
+            ax.set_xticklabels([str(v) for v in wall_data["R_Value"].values])
+
+            # Labels, legend, grid
+            ax.set_xlabel(x_label)
+            ax.set_ylabel("% Saving")
+            ax.set_title(title)
+            ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
+            ax.grid(axis="y", alpha=0.3)
+            plt.tight_layout()
+
+            return fig
+
+        # --- Now update 'cases' for the loop (remove Wall, Roof, Light, Equip) ---
+        cases = [
+            ("Energy Use vs WWR", wwr_df, "WWR", "Window-to-Wall Ratio"),
+            ("Energy Use vs Orientation", orient_df, "Orientation", "Orientation (°)"),
+        ]
+
+        # 1️⃣ Generate scatter plots for all cases
+        figures_scatter = []
+        for exp_title, df, col, x_label in cases:
+            if col in df.columns and not df.empty:
+                fig = make_scatter_case_type_matplotlib(df, col, x_label, y_min=y_min, y_max=y_max, title=exp_title)
+                figures_scatter.append(fig)
+
+        # 2️⃣ Generate your other figures
+        figA = make_combined_plot_matplotlib(wall_roof_df, "Energy Use vs Wall & Roof", "U-Value (BTU/hr·ft²·F)")
+        figB = make_savings_lpd_epd_barplot_matplotlib(light_equip_df, "Energy Savings vs R-Value", "R-Value (ft²·F·hr/BTU)")
+        figC = make_combined_plot_matplotlib(light_equip_df, "Energy Use vs Light & Equipment", "Power Density (W/ft²)")
+        figD = make_savings_lpd_epd_barplot_matplotlib(light_equip_df, "Energy Savings vs LPD/EPD", "Power Density (W/ft²)")
+        figE = make_savings_wwr_barplot_matplotlib(wwr_df, "Energy Savings vs WWR", "Window-to-Wall Ratio")
+        figF, ax = make_combined_plot_window_matplotlib(glazing_df, "Energy Use vs Shading Coefficient(SC)", "Shading Coefficient(SC)")
+        figG, ax = make_savings_window_matplotlib(glazing_df, "Energy Saving vs Shading Coefficient(SC)", "Shading Coefficient(SC)")
+        
+        from pptx import Presentation
+        from pptx.util import Inches, Pt
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.dml.color import RGBColor
+
+        # Load existing presentation
+        ppt_path = "database/Report_Output.pptx"
+        prs = Presentation(ppt_path)
+        
+        # Your figures
+        figures = [figA, figB, figC, figD] + figures_scatter + [figE] + [figF] + [figG]
+        slide_indices = [1, 2, 3, 4]  # slides to insert charts
+        fig_idx = 0
+
+        for slide_num in slide_indices:
+            slide = prs.slides[slide_num]
+
+            # Print all shapes on slide to identify placeholders/textboxes
+            # (optional, only for debugging)
+            # for i, shape in enumerate(slide.shapes):
+            #     print(i, shape.name, shape.shape_type)
+
+            # Example: assume slide has 2 placeholders/textboxes to insert images
+            # Adjust indexes based on your PPT
+            placeholder_idxs = [1, 2]  # placeholder index where you want left/right chart
+
+            for idx in placeholder_idxs:
+                if fig_idx >= len(figures):
+                    break
+
+                fig = figures[fig_idx]
+                img_stream = io.BytesIO()
+                fig.savefig(img_stream, format='PNG', bbox_inches='tight')
+                img_stream.seek(0)
+
+                # Use shape coordinates for placement
+                shape = slide.shapes[idx]
+                left = shape.left
+                top = shape.top
+                width = shape.width
+                height = shape.height
+
+                slide.shapes.add_picture(img_stream, left, top, width=width, height=height)
+                fig_idx += 1
+
+        # Save to buffer for Streamlit
+        pptx_buffer = io.BytesIO()
+        prs.save(pptx_buffer)
+        pptx_buffer.seek(0)
+
+        # Common y-axis range
+        y_min = combined_Data_expanded["Energy_Outcome(KWH)"].min()
+        y_max = combined_Data_expanded["Energy_Outcome(KWH)"].max()
+
+        col1, col2 = st.columns(2)
+        with col1:
+            fig1 = make_combined_plot(wall_roof_df, "Energy Use vs Wall & Roof", "U-Value (BTU/hr·ft²·F)")
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            fig2 = make_combined_savings_barplot(wall_roof_df, "Energy Savings vs R-Value", "Incremental R-Value over As Designed")
+            st.plotly_chart(fig2, use_container_width=True)
+        _, colN2 = st.columns(2)
+        with colN2:
+            st.markdown("""**Note:**  *X-axis represents the incremental R-Value over the existing construction.*""",unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(make_combined_plot(light_equip_df, "Energy Use vs Lighting & Equipment", "Power Density (W/ft²)"), use_container_width=True)
+        with col2:
+            st.plotly_chart(make_savings_lpd_epd_barplot(light_equip_df, "EUI Savings vs LPD/EPD", "Savings(%) over As Designed Power Density"), use_container_width=True)
+        _, colN2 = st.columns(2)
+        with colN2:
+            st.markdown("""**Note:**  *X-axis represents the Savings (%) over Existing Lighting and Equipment.*""", unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(make_combined_scatter(glazing_df, "Energy Use vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
+        with col2:
+            st.plotly_chart(make_savings_sc_barplot_matplotlib(glazing_df, "EUI Savings vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
+        colN1, _ = st.columns(2)
+        with colN1:
+            st.markdown("""**Note:**  *Size of Points represented by U-Value (BTU/hr·ft²·F).*""", unsafe_allow_html=True)
+
+        # Loop through plots
+        for exp_title, df, col, x_label in cases:
+            if col in df.columns and not df.empty:
+                col1, col2 = st.columns(2)
+                with col1:
+                    df = df.copy()
+                    df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "ECM")
+                    # Scatter plot without CaseType
+                    fig = px.scatter(
+                        df,
+                        x=col,
+                        y="Energy_Outcome(KWH)",
+                        color="CaseType",
+                        color_discrete_map={"As Designed": "red", "ECM": "blue"}
+                    )
+
+                    # Make points bigger
+                    fig.update_traces(marker=dict(size=12, opacity=0.85))
+                    fig.update_layout(legend_title_text="")
+
+                    # Custom hover template
+                    fig.update_traces(
+                        hovertemplate=(
+                            f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                            "<b>Energy Use (kWh)</b>: %{y:.2f}"
+                            "<extra></extra>"
+                        )
+                    )
+
+                    # Layout settings
+                    fig.update_layout(
+                        xaxis_title=x_label,
+                        yaxis_title="Energy Use (kWh, K=Thousand, M=Million, B=Billion)",
+                        yaxis=dict(range=[y_min, y_max], tickformat="~s"),
+                        legend=dict(
+                            orientation="h", 
+                            yanchor="bottom",
+                            y=-0.3,
+                            xanchor="center",
+                            x=0.5
+                        ),
+                        showlegend=True
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                with col2:
+                    st.plotly_chart(
+                        make_savings_wwr_barplot(
+                            wwr_df,
+                            title="Energy Savings vs WWR",
+                            x_label="Window-to-Wall Ratio"
+                        ),
+                        use_container_width=True
+                    )
+        
+        col1, _ = st.columns(2)
+        with col1:
+            st.download_button(
+                label="Download Report",
+                data=pptx_buffer,
+                file_name="Report_Output.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
+            
+        # st.write(combined_Data)
+        fixed_cols = [
+            "Location", 
+            "Floor-Total-Above-Grade(SQFT)", "Floor-Total-Below-Grade(SQFT)",
+            "Floor-Total-Conditioned-Grade(SQFT)", "Floor-Total-UnConditioned-Grade(SQFT)",
+            "Wall-Total-Above-Grade(SQFT)",
+            "N-Wall-Area(SQFT)", "S-Wall-Area(SQFT)", "E-Wall-Area(SQFT)", "W-Wall-Area(SQFT)",
+            "SE-Wall-Area(SQFT)", "SW-Wall-Area(SQFT)", "NE-Wall-Area(SQFT)", "NW-Wall-Area(SQFT)",
+            "ROOF-AREA(SQFT)", "ALL WALLS-Wall-AREA(SQFT)", "WALLS+ROOFS-AREA(SQFT)",
+            "UNDERGRND-Wall-AREA(SQFT)", "BUILDING-Wall-AREA(SQFT)",
+            "N-Window-Area(SQFT)", "S-Window-Area(SQFT)", "E-Window-Area(SQFT)", "W-Window-Area(SQFT)",
+            "SE-Window-Area(SQFT)", "SW-Window-Area(SQFT)", "NE-Window-Area(SQFT)", "NW-Window-Area(SQFT)",
+            "ROOF-Window-Area(SQFT)", "ALL WALLS-Window-AREA(SQFT)", "WALLS+ROOFS-Window-AREA(SQFT)",
+            "UNDERGRND-Window-AREA(SQFT)", "BUILDING-Window-AREA(SQFT)"
+        ]
+        drop_cols = ["ProjectName"]
+
+        # fixed dataframe (only one row is enough since all values are same)
+        fixed_df = combined_Data[fixed_cols].iloc[[0]].round(2)
+        variable_df = combined_Data.drop(columns=fixed_cols).round(2)
+        variable_df = variable_df.drop(columns=drop_cols, axis=1)
+
+        rename_map = {
+            "Location": "Location",
+
+            # Floor Areas
+            "Floor-Total-Above-Grade(SQFT)": "Above Grade Floor (sqft)",
+            "Floor-Total-Below-Grade(SQFT)": "Below Grade Floor (sqft)",
+            "Floor-Total-Conditioned-Grade(SQFT)": "Conditioned Floor (sqft)",
+            "Floor-Total-UnConditioned-Grade(SQFT)": "Unconditioned Floor (sqft)",
+
+            # Wall Areas
+            "Wall-Total-Above-Grade(SQFT)": "Above Grade Wall (sqft)",
+            "N-Wall-Area(SQFT)": "North Wall (sqft)",
+            "S-Wall-Area(SQFT)": "South Wall (sqft)",
+            "E-Wall-Area(SQFT)": "East Wall (sqft)",
+            "W-Wall-Area(SQFT)": "West Wall (sqft)",
+            "SE-Wall-Area(SQFT)": "SE Wall (sqft)",
+            "SW-Wall-Area(SQFT)": "SW Wall (sqft)",
+            "ROOF-AREA(SQFT)": "Roof Area (sqft)",
+            "ALL WALLS-Wall-AREA(SQFT)": "All Walls Area (sqft)",
+            "WALLS+ROOFS-AREA(SQFT)": "Walls+Roof Area (sqft)",
+            "UNDERGRND-Wall-AREA(SQFT)": "Underground Wall (sqft)",
+            "BUILDING-Wall-AREA(SQFT)": "Building Wall Total (sqft)",
+
+            # Window Areas
+            "N-Window-Area(SQFT)": "North Window (sqft)",
+            "S-Window-Area(SQFT)": "South Window (sqft)",
+            "E-Window-Area(SQFT)": "East Window (sqft)",
+            "W-Window-Area(SQFT)": "West Window (sqft)",
+            "SE-Window-Area(SQFT)": "SE Window (sqft)",
+            "SW-Window-Area(SQFT)": "SW Window (sqft)",
+            "ROOF-Window-Area(SQFT)": "Roof Window (sqft)",
+            "ALL WALLS-Window-AREA(SQFT)": "All Walls Window (sqft)",
+            "WALLS+ROOFS-Window-AREA(SQFT)": "Walls+Roof Window (sqft)",
+            "UNDERGRND-Window-AREA(SQFT)": "Underground Window (sqft)",
+            "BUILDING-Window-AREA(SQFT)": "Building Window Total (sqft)"
+        }
+
+        # Apply renaming
+        fixed_df = fixed_df.rename(columns=rename_map)
+        variable_df = variable_df.rename(columns=rename_map)
+
+        colA, colB = st.columns(2)
+        with colA:
+            with st.expander("Building Information"):
+                cData = combined_Data.copy()
+                combined_Data = combined_Data.drop(combined_Data.columns[8:], axis=1)
+                combined_Data = combined_Data.drop(columns=["ProjectName"])
+                combined_Data = combined_Data.T
+                # combined_Data["FileName"] = combined_Data["FileName"].str.replace(r'_[^_]+(?=\.[^.]+$|$)', f'_{user_nm}', regex=True)
+                combined_Data = combined_Data.drop(combined_Data.columns[1:], axis=1)
+                fixed_df = fixed_df.reset_index(drop=True)
+                numeric_cols = fixed_df.select_dtypes(include='number').columns  # all numeric columns
+                fixed_df[numeric_cols] = fixed_df[numeric_cols].round(0)
+                # st.write(fixed_df)
+                cols = fixed_df.columns.tolist()
+                top_level = []
+                second_level = []
+                for col in cols:
+                    c = col.lower()
+                    
+                    # File Info
+                    if 'filename' in c or 'projectname' in c or 'location' in c:
+                        top_level.append('File Info')
+                        second_level.append(col.replace('-', ' '))
+                    
+                    elif 'floor' in c:
+                        top_level.append('Floor Area (ft²)')
+                        second_level.append(col.replace('Floor', ' ').replace('(sqft)', ''))
+
+                    elif 'wall' in c and 'window' not in c:
+                        top_level.append('Wall Area (ft²)')
+                        second_level.append(col.replace('(sqft)', ' ').replace('(SQFT)', '').replace("Area",'').replace('-',' ').replace("North Wall", "N").replace("East Wall", "E").replace("South Wall", "S").replace("West Wall", "W").replace("SE Wall", "SE").replace("NE Wall", "NE").replace("SW Wall", "SW").replace("NW Wall", "NW").replace("Wall","").replace("Roof","").replace("s+","Above Grade (Wall+Roof)").replace("Total","").replace(" s","t").replace("Allt", "AboveGrade").replace("Above Grade", "Above Grade(Wall+Wind)").replace("AboveGrade", "Above Grade"))
+                    
+                    elif 'window' in c or 'walls window' in c or 'walls+roof' in c:
+                        top_level.append('Window Area (ft²)')
+                        second_level.append(col.replace('Window', ' ').replace('(sqft)', '').replace('(SQFT)', '').replace('-','').replace("Area",'').replace("North", "N").replace("South", "S").replace("East", "E").replace("West", "W").replace("  ", " ").replace("Total",""))
+
+                    else:
+                        top_level.append('Roof Area (ft²)')
+                        second_level.append(col.replace(' ', ' ').replace('(sqft)', '').replace('Area', '').replace("Roof",""))
+
+                # Create MultiIndex
+                multi_columns = pd.MultiIndex.from_tuples(list(zip(top_level, second_level)))
+                fixed_df.columns = multi_columns
+                pd.set_option('display.max_columns', None)
+                st.write(fixed_df)
+        with colB:
+            with st.expander("Detailed Building Information"):
+                cData["FileName"] = cData["FileName"].str.replace(r'_[^_]+(?=\.[^.]+$|$)', f'_{user_nm}', regex=True)
+                cData = cData.drop(cData.columns[1:8], axis=1)
+                # Get original columns
+                variable_df = variable_df.drop(variable_df.columns[0], axis=1)
+                variable_df = variable_df.drop(['Light(W/Sqft)', 'Equip(W/Sqft)'], axis=1)
+                round_dict = {
+                    'Power Lighting Total(W)': 0,  # round to 1 decimal
+                    'Equipment-Total(W)': 0,  # round to 2 decimals
+                    'EFLH': 0,
+                    'TOTAL-LOAD(KW)': 0,
+                    'LIGHT TO SPACE': 0,
+                    'EQUIPMENT TO SPACE': 0,
+                    'OCCUPANTS TO SPACE': 0,
+                    'WALL CONDUCTION': 0,
+                    'ROOF CONDICTION': 0,
+                    'WINDOW GLASS+FRM COND': 0,
+                    'WINDOW GLASS SOLAR': 0,
+                    'ROOF CONDUCTION': 0
+                }
+                variable_df = variable_df.round(round_dict)
+
+                # st.write(variable_df)
+                cols = variable_df.columns.tolist()
+                top_level = []
+                second_level = []
+                for col in cols:
+                    c = col.lower()
+                    
+                    # File Info
+                    if 'filename' in c or 'projectname' in c or 'location' in c:
+                        top_level.append('File Info')
+                        second_level.append(col.replace('-', ' '))
+                    
+                    # Floor area
+                    elif 'floor' in c:
+                        top_level.append('Floor Area (ft²)')
+                        second_level.append(col.split('(')[0].replace('Floor-Total-', '').replace('-', ' '))
+                    
+                    # Wall area
+                    elif 'wall-area' in c and 'window' not in c:
+                        top_level.append('Wall Area (ft²)')
+                        second_level.append(col.split('-Area')[0].replace('-', ' '))
+                    
+                    # Roof area
+                    elif 'roof-area' in c or 'walls+roofs-area' in c:
+                        top_level.append('Roof Area (ft²)')
+                        second_level.append(col.split('-AREA')[0].replace('-', ' '))
+                    
+                    # Window area
+                    elif 'window-area' in c:
+                        top_level.append('Window Area (ft²)')
+                        second_level.append(col.split('-Area')[0].replace('-', ' '))
+                    
+                    # U-values
+                    elif 'u-value' in c:
+                        if 'wall' in c and 'window' not in c:
+                            top_level.append('Wall U-Value (BTU/hr·ft²·°F)')
+                        elif 'roof' in c:
+                            top_level.append('Roof U-Value (BTU/hr·ft²·°F)')
+                        elif 'window' in c or 'all walls-window' not in c:
+                            top_level.append('Window U-Value (BTU/hr·ft²·°F)')
+                        else:
+                            top_level.append('Other U-Value')
+                        second_level.append(col.split('-U-Value')[0].replace('-', ' ').replace('ROOF', 'Roof').replace("RoofS", "Roof").replace("N Wall", "N").replace("S Wall", "S").replace("E Wall", "E").replace("W Wall", "W").replace("W Window", "W").replace("N Window", "N").replace("S Window", "S").replace("E Window", "E").replace("Window", "").replace("Wall","").replace("ALL WALLS","Above Grade").replace("Roof","").replace("WALLS+","Above Grade(Wall+Roof)"))
+                    
+                    # Lighting & equipment loads
+                    elif 'power' in c or 'equipment-total' in c or 'load' in c or 'equip(w/sqft)' in c or 'light(w/sqft)' in c:
+                        top_level.append('Power Density (W)')
+                        second_level.append(col.replace('(W)', ' ').replace('Total', '').replace('-', '').replace('Power', '').replace('(KW)','').replace('TOTALLOAD','Total-Load').replace('-',' '))
+                    
+                    # Conduction & solar
+                    elif 'conduction' in c or 'solar' in c or 'cond' in c:
+                        top_level.append('Conduction & Solar (kW)')
+                        second_level.append(col.replace('-', ' '))
+                    
+                    # Internal gains
+                    elif 'occupants' in c or 'light to space' in c or 'equipment to space' in c or 'process to space' in c or 'infiltration' in c:
+                        top_level.append('Internal Gains (kW)')
+                        second_level.append(col.replace('-', ' '))
+                    
+                    elif 'sc' in c:
+                        top_level.append('SC')
+                        second_level.append(col.replace('SC', ' '))
+                    
+                    elif 'eflh' in c:
+                        top_level.append('EFLH(H)')
+                        second_level.append(col.replace('EFLH', ''))
+                    
+                    elif 'wwr' in c:
+                        top_level.append('WWR')
+                        second_level.append(col.replace('WWR', ' '))
+
+                    elif 'energy' in c:
+                        top_level.append('Energy Use(kWh)')
+                        second_level.append(col.replace('(KWH)', ' ').replace('Energy_Outcome', ' '))
+                    
+                    # Other metrics
+                    else:
+                        top_level.append('R Value')
+                        second_level.append(col.replace('R-Value-', ' '))
+
+                # Create MultiIndex
+                multi_columns = pd.MultiIndex.from_tuples(list(zip(top_level, second_level)))
+
+                # Assign to dataframe
+                variable_df.columns = multi_columns
+                # Optional: show all columns
+                pd.set_option('display.max_columns', None)
+                st.write(variable_df)
+        
+        # with colC:
+        #     with st.expander("Log File"):
+        #         # logFile["File Name"] = logFile["File Name"].str.replace(r'_[^_]+\.sim$', f'_{user_nm}.sim', regex=True)
+        #         st.write("logFile")
+
+st.markdown('<hr style="border:1px solid red">', unsafe_allow_html=True)
+st.image("images/image123456.png", width=2000) 
+st.markdown(
+        """
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+        }
+        .footer .logo {
+            flex: 1;
+        }
+        .footer .logo img {
+            max-width: 150px;
+            height: auto;
+        }
+        .footer .social-media {
+            flex: 2;
+        }
+        .footer .social-media p {
+            margin: 0;
+            font-size: 16px;
+        }
+        .footer .icons {
+            margin-top: 10px;
+        }
+        .footer .icons a {
+            margin: 0 10px;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer .icons a:hover {
+            color: #0077b5; /* LinkedIn color as default */
+        }
+        .footer .icons a .fab {
+            font-size: 28px;
+        }
+        .footer .additional-content {
+            margin-top: 10px;
+        }
+        .footer .additional-content h4 {
+            margin: 0;
+            font-size: 18px;
+            color: #007bff;
+        }
+        .footer .additional-content p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+    </style>
+    <div style="text-align:center; font-size:14px;">
+        Email: <a href="mailto:info@edsglobal.com">info@edsglobal.com</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        Phone: +91 . 11 . 4056 8633&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        <a href="https://twitter.com/edsglobal?lang=en" target="_blank"><i class="fab fa-twitter" style="color:#1DA1F2; margin:0 6px;"></i></a>
+        <a href="https://www.facebook.com/Environmental.Design.Solutions/" target="_blank"><i class="fab fa-facebook" style="color:#4267B2; margin:0 6px;"></i></a>
+        <a href="https://www.instagram.com/eds_global/?hl=en" target="_blank"><i class="fab fa-instagram" style="color:#E1306C; margin:0 6px;"></i></a>
+        <a href="https://www.linkedin.com/company/environmental-design-solutions/" target="_blank"><i class="fab fa-linkedin" style="color:#0077b5; margin:0 6px;"></i></a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)

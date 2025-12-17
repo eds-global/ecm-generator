@@ -83,7 +83,7 @@ def resource_path(relative_path):
 
 def remove_utility(inp_data):
     start_marker = "Utility Rates"
-    end_marker = "$ **"
+    end_marker = "Output Reporting"
 
     start_index, end_index = None, None
 
@@ -96,7 +96,7 @@ def remove_utility(inp_data):
     if start_index is not None:
         for i, line in enumerate(inp_data[start_index:], start=start_index):
             if end_marker in line:
-                end_index = i - 2
+                end_index = i - 3
                 break
 
     if start_index is None or end_index is None:
@@ -146,76 +146,28 @@ def remove_betweenLightEquip(inp_data):
 
     return new_data
 
+if 'script_choice' not in st.session_state:
+    st.session_state.script_choice = "home"  # Set default to "about"
+
 # --- Header Section ---
-col1, col2, col3 = st.columns([1,2,1])
+col1, col2, col3, _, col4, col5 = st.columns([0.16,0.16,2.3,0.4,0.5,0.5])
 with col1:
-    st.image("images/EDSlogo.jpg", width=100)  # Logo
+    st.image("images/analysis.png")  # Logo
 with col2:
-    st.markdown("""
-        <div style="text-align:center;">
-            <h3 style="color:#FF5733; margin-bottom:4px;">AWECM Sim</h3>
-            <p style="font-size:15px; color:black; margin-top:0;"><i>
-                Automating Workflows for Energy Conservation Measure Simulations
-            </i></p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.image("images/eds.png")  # Logo
 with col3:
     st.markdown("""
-    <style>
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 5px 10px 15px 10px;
-        }
-
-        .logo {
-            flex: 0 0 auto;
-        }
-
-        .title-block {
-            flex: 1;
-            text-align: center;
-        }
-
-        .title-block h3 {
-            color: #FF5733;
-            margin-bottom: 4px;
-            font-size: 26px;
-            font-weight: bold;
-        }
-
-        .title-block p {
-            font-size: 15px;
-            color: #000;
-            margin-top: 0;
-            font-style: italic;
-        }
-
-        .links {
-            flex: 0 0 auto;
-            text-align: right;
-        }
-
-        .links a {
-            color: #FF5733;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
-            margin-left: 18px;
-        }
-
-        .links a:hover {
-            text-decoration: underline;
-        }
-    </style>
-
-    <div class="header-container">
-        <div class="links">
-            <a href="https://edsglobal.com/" target="_blank">About AWECM Sim</a>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
+    <div style="text-align:center;">
+        <h3 style="margin-bottom:2px; color:black;">
+            <span style="color: rgb(202, 50, 50);">Automating Workflows for Energy Simulation</span>
+        </h3>
+    </div>""", unsafe_allow_html=True)
+with col4:
+    if st.button("Tools", key="tools"):
+        st.session_state.script_choice = "tools"
+with col5:
+    if st.button("Home", key="home"):
+        st.session_state.script_choice = "home"
 
 # Reduce gap before red line
 st.markdown(
@@ -225,29 +177,33 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Load location database
-csv_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+# 1) Go one level up (pages → TESTAWCM)
+base_dir = os.path.dirname(os.path.dirname(__file__))
+
+# 2) Correct CSV and Excel paths
+csv_path = os.path.join(base_dir, "database", "Simulation_locations.csv")
+db_path = os.path.join(base_dir, "database", "AllData.xlsx")
+output_csv = os.path.join(base_dir, "database", "Randomized_Sheet.xlsx")
+
+# 3) Load files
 weather_df = pd.read_csv(csv_path)
-db_path = resource_path(os.path.join("database", "AllData.xlsx"))
-output_csv = resource_path(os.path.join("database", "Randomized_Sheet.xlsx"))
-location_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
-location = pd.read_csv(location_path)
+location = pd.read_csv(csv_path)    # same file → correct
+
 locations = sorted(location['Sim_location'].unique())
+
 updated_df = pd.read_excel(output_csv)
 
 updated_df["Wall_Roof_Glazing_WWR_Orient_Light_Equip"] = (
-updated_df["Wall"].astype(str) + "_" +
-updated_df["Roof"].astype(str) + "_" +
-updated_df["Glazing"].astype(str) + "_" +
-updated_df["WWR"].astype(str) + "_" +
-updated_df["Orient"].astype(str) + "_" +
-updated_df["Light"].astype(str) + "_" +
-updated_df["Equip"].astype(str)
+    updated_df["Wall"].astype(str) + "_" +
+    updated_df["Roof"].astype(str) + "_" +
+    updated_df["Glazing"].astype(str) + "_" +
+    updated_df["WWR"].astype(str) + "_" +
+    updated_df["Orient"].astype(str) + "_" +
+    updated_df["Light"].astype(str) + "_" +
+    updated_df["Equip"].astype(str)
 )
-
 # Inputs
-col1, col2, col3 = st.columns(3)
-locations = ["Ahemdabad", "Akola", "Bangalore", "Bhubneshwar", "Chennai", "Dehradun", "Goa", "Guwahati", "Hyderabad", "Indore", "Jaipur", "Jaisalmer","Kolkata", "Lucknow", "Mumbai", "New Delhi", "Nagpur", "Pune", "Rajkot", "Raipur", "Shillong", "Sholapur", "Srinagar", "Surat", "Tiruchirapalli","Vishakhapatnam"]
+col1, col2, col3, col4 = st.columns(4)
 st.markdown("""
     <style>
     div[data-testid="stFileUploader"] section {
@@ -259,13 +215,92 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+# --- NEW: handle both Country and Location ---
+if "Country" in location.columns:
+    # If CSV already has Country column
+    countries = sorted(location["Country"].unique().tolist())
+else:
+    # If your current CSV has only Indian cities — default to India
+    countries = ["India"]
 with col1:
     project_name = st.text_input("📝 Project Name", placeholder="Enter project name")
     project_name_clean = project_name.replace(" ", "_")
     user_nm = project_name_clean
+    if project_name_clean:
+        parent_dir = os.path.dirname(os.getcwd())
+        batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs")
+        project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+        # Check if project folder already exists
+        if os.path.exists(project_folder):
+            st.warning("⚠️ Project name already exists! Please select another name.")
+        #     st.stop()
 with col2:
-    user_input = st.selectbox("🌍 Select Location", locations).strip().lower()
-with col3:
+    # Add "Other" option to countries
+    countries.append("Custom Weather")
+    selected_country = st.selectbox("🌎 Select Country", countries)
+
+    # Filter and sort locations for the selected country (if not "Other")
+    if selected_country != "Custom Weather":
+        if "Country" in location.columns:
+            filtered_locations = (
+                location[location["Country"] == selected_country]["Sim_location"]
+                .dropna()
+                .unique()
+                .tolist()
+            )
+            filtered_locations = sorted(filtered_locations)
+        else:
+            filtered_locations = sorted(location["Sim_location"].dropna().tolist())
+    else:
+        filtered_locations = []  # No locations for "Other"
+
+bin_name = ""
+# Only show City dropdown if not "Other"
+if selected_country != "Custom Weather":
+    with col3:
+        user_input = st.selectbox("🌍 Select City", filtered_locations).lower()
+else:
+    with col3:
+        user_input = "Other-City"
+        # When "Other" is selected, show .bin upload option
+        uploaded_bin = st.file_uploader("📤 Upload .bin file", type=["bin"])
+        if uploaded_bin is not None:
+            save_folder = r"C:\doe22\weather"
+            os.makedirs(save_folder, exist_ok=True)
+            # Always rename uploaded file to 1.bin
+            save_path = os.path.join(save_folder, "1.bin")
+            # Save uploaded file as 1.bin
+            with open(save_path, "wb") as f:
+                f.write(uploaded_bin.getbuffer())
+            bin_name = "1"   # without extension
+
+        # st.markdown(f"<span style='color:red;'>Remember that uploaded file in your C:/doe22/weather</span>", unsafe_allow_html=True)
+        # if uploaded_bin is not None:
+        #     # Define the save folder path
+        #     save_folder = r"C:\doe22\weather"
+        #     os.makedirs(save_folder, exist_ok=True)
+
+        #     # Original filename
+        #     original_name = uploaded_bin.name
+        #     name_without_ext, ext = os.path.splitext(original_name)
+
+        #     # Default save path
+        #     save_path = os.path.join(save_folder, original_name)
+
+        #     # Check if file already exists → create copy versions
+        #     counter = 1
+        #     while os.path.exists(save_path):
+        #         new_name = f"{name_without_ext}_copy{counter}{ext}"
+        #         save_path = os.path.join(save_folder, new_name)
+        #         counter += 1
+
+        #     # Save the file
+        #     with open(save_path, "wb") as f:
+        #         f.write(uploaded_bin.getbuffer())
+        #     bin_name = name_without_ext
+            # st.success(f"File saved as: {os.path.basename(save_path)}")
+        
+with col4:
     uploaded_file = st.file_uploader("📤 Upload eQUEST INP file", type=["inp"])
     if uploaded_file:
         # st.write(uploaded_file)
@@ -291,98 +326,110 @@ with col3:
         inp_folder = output_inp_folder
 
         project_folder = os.path.join(batch_outputs_dir, project_name_clean)
-        # Check if project folder already exists
-if uploaded_file is not None:
-    if os.path.exists(project_folder) is None:
-        st.warning("⚠️ Project already exists! Please select another name.")
-        st.stop()
-        
+
 run_cnt = 1
 location_id, weather_path = "", ""
-matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+if user_input != "Other-City":
+    matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+    # st.write(matched_row)
+else:
+    matched_row = pd.DataFrame()
+
 if not matched_row.empty:
     location_id = matched_row.iloc[0]['Location_ID']
     weather_path = matched_row.iloc[0]['Weather_file']
 elif user_input:
-    st.error("❌ Location not found.")
-
+    weather_path = bin_name
+    # st.error("❌ Location not found.")
+# st.write(weather_path)
 # Start simulation
-# if st.button("Simulate 🚀") and uploaded_file is not None:
-# if st.button("Simulate 🚀"):
-    # with st.spinner("⚡ Processing... This may take a few minutes."):
-    #     os.makedirs(output_inp_folder, exist_ok=True)
-    #     new_batch_id = f"{int(time.time())}"  # unique ID
+if st.button("Simulate 🚀"):
+    if uploaded_file is None:
+        st.warning("⚠️ Please Upload .INP File!")
+        st.stop()
+    if bin_name is None:
+        st.warning("⚠️ Please Upload .BIN File!")
+        st.stop()
+    if not project_name_clean:
+        st.warning("⚠️ Please enter a project name.")
+        st.stop()
+    with st.spinner("⚡ Processing... This may take a few minutes."):
+        os.makedirs(output_inp_folder, exist_ok=True)
+        new_batch_id = f"{int(time.time())}"  # unique ID
 
-    #     selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
-    #     batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
-    #     os.makedirs(batch_output_folder, exist_ok=True)
+        selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
+        batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
+        os.makedirs(batch_output_folder, exist_ok=True)
 
-    #     num = 1
-    #     modified_files = []
-    #     for _, row in selected_rows.iterrows():
-    #         selected_inp = uploaded_file.name
-    #         new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['Orient']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
-    #         new_inp_path = os.path.join(batch_output_folder, new_inp_name)
+        num = 1
+        modified_files = []
+        for _, row in selected_rows.iterrows():
+            selected_inp = uploaded_file.name
+            new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['Orient']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
+            new_inp_path = os.path.join(batch_output_folder, new_inp_name)
 
-    #         inp_file_path = os.path.join(inp_folder, selected_inp)
-    #         if not os.path.exists(inp_file_path):
-    #             st.error(f"File {inp_file_path} not found. Skipping.")
-    #             continue
+            inp_file_path = os.path.join(inp_folder, selected_inp)
+            if not os.path.exists(inp_file_path):
+                st.error(f"File {inp_file_path} not found. Skipping.")
+                continue
 
-    #         # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
-    #         num += 1
+            # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
+            num += 1
 
-    #         # Apply modifications
-    #         inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
-
-    #         # inp_content = orient.updateOrientation(inp_content, row["Orient"])
-    #         inp_content = lighting.updateLPD(inp_content, row['Light'])
-    #         # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
-    #         # inp_content = insertRoof.update_Material_Layers_Construction(inp_content, row["Roof"])
-    #         # inp_content = insertRoof.removeDuplicates(inp_content)
-    #         inp_content = equip.updateEquipment(inp_content, row['Equip'])
-    #         inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
-    #         inp_content =remove_utility(inp_content)
-    #         inp_content =remove_betweenLightEquip(inp_content)
-    #         count = ModifyWallRoof.count_exterior_walls(inp_content)
-    #         if count > 1:
-    #             inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
-    #             inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
-    #             with open(new_inp_path, 'w') as file:
-    #                 file.writelines(inp_content)
-    #             modified_files.append(new_inp_name)
-    #         else:
-    #             st.write("No Exterior-Wall Exists!")
-
-    #     simulate_files = []
-    #     # Copy and run batch script
-    #     if uploaded_file is None:
-    #         st.error("Please upload an INP file before starting the simulation.")
-    #     else:
-    #         script_dir = os.path.dirname(os.path.abspath(__file__))
-    #         shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
-    #         inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
-    #         for inp_file in inp_files:
-    #             file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
-    #             subprocess.call(
-    #                 [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
-    #                 shell=True
-    #             )
-    #             simulate_files.append(inp_file)
+            # Apply modifications
+            inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
+            # inp_content = orient.updateOrientation(inp_content, row["Orient"])
+            inp_content = lighting.updateLPD(inp_content, row['Light'])
+            # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
+            # inp_content = insertRoof.update_Material_Layers_Construction(inp_content, row["Roof"])
+            # inp_content = insertRoof.removeDuplicates(inp_content)
+            inp_content = equip.updateEquipment(inp_content, row['Equip'])
+            inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
+            inp_content =remove_utility(inp_content)
+            if row['Light'] > 0:
+                inp_content =remove_betweenLightEquip(inp_content)
+            count = ModifyWallRoof.count_exterior_walls(inp_content)
+            if count > 1:
+                inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
+                inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
+                # inp_content = insertRoof.removeDuplicates(inp_content)
+                with open(new_inp_path, 'w') as file:
+                    file.writelines(inp_content)
+                modified_files.append(new_inp_name)
+            else:
+                st.write("No Exterior-Wall Exists!")
+    
+        simulate_files = []
+        # Copy and run batch script
+        if uploaded_file is None:
+            st.error("Please upload an INP file before starting the simulation.")
+        else:
+            st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
+            inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
+            for inp_file in inp_files:
+                file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
+                subprocess.call(
+                    [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
+                    shell=True
+                )
+                simulate_files.append(inp_file)
         
-    #         subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
-    #         required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
-    #         log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
-    #         get_failed_simulation_data(batch_output_folder, log_file_path)
-    #         clean_folder(batch_output_folder)
-    #         combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input)
-    #     logFile = pd.read_excel(log_file_path)
-    #     total_runs = len(updated_df)
-    #     total_sims = len(logFile)
-    #     success_count = (logFile["Status"] == "Success").sum()
-    #     success_rate = (success_count / total_sims) * 100 if total_sims > 0 else 0
-    exportCSV = resource_path(os.path.join("database", "2025-10-23T06-44_export.csv"))
-    combined_Data = pd.read_csv(exportCSV)
+            subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+            # if os.path.exists(save_path):
+            #     os.remove(save_path)
+            required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
+            log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
+            get_failed_simulation_data(batch_output_folder, log_file_path)
+            clean_folder(batch_output_folder)
+            combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input)
+        logFile = pd.read_excel(log_file_path)
+        total_runs = len(updated_df)
+        total_sims = len(logFile)
+        success_count = (logFile["Status"] == "Success").sum()
+        success_rate = (success_count / total_sims) * 100 if total_sims > 0 else 0
+
     # st.write(combined_Data)
     combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
     combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
@@ -1251,15 +1298,25 @@ elif user_input:
         color_map = {var: colors[i % 2] for i, var in enumerate(unique_vars)}
 
         # Normalize U-value for marker size
-        u_min = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].min()
-        u_max = df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].max()
+        u_col = "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"
+        u_min = df[u_col].min(skipna=True)
+        u_max = df[u_col].max(skipna=True)
         size_min = 8
         size_max = 25
 
+        # Warn if NaN U-values found
+        if df[u_col].isna().any():
+            print("⚠️ Warning: Missing U-values found. Using minimum U-value for those entries.")
+            df[u_col] = df[u_col].fillna(u_min)
+
         def u_to_size(u):
+            # Handle identical or NaN min/max cases
+            if pd.isna(u_min) or pd.isna(u_max) or u_min == u_max or pd.isna(u):
+                return size_min  # fallback default
             # Scale U-value to marker size
             return size_min + (u - u_min) / (u_max - u_min) * (size_max - size_min)
 
+        # Create Plotly figure
         fig = go.Figure()
 
         for variable in unique_vars:
@@ -1272,21 +1329,15 @@ elif user_input:
                 x=ecm_df["X"],
                 y=ecm_df["Energy_Outcome(KWH)"],
                 mode="markers",
-                name=f"ECM",
+                name="ECM",
                 marker=dict(
-                    size=ecm_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    size=ecm_df[u_col].apply(u_to_size),
                     color="blue",
                     line=dict(width=1, color="blue"),
                     symbol="circle",
                     opacity=0.9
                 ),
-                # customdata=ecm_df[["Energy_human", "PercentChangeAdj"]].values,
-                customdata=ecm_df[["Energy_human", "PercentChangeAdj", "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"]].values,
-                # hovertemplate=(
-                #     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
-                #     "<b>Energy Use</b>: %{customdata[0]}<br>"
-                #     # "<b>% Change from As Designed</b>: %{customdata[1]:.0f}%<extra></extra>"
-                # )
+                customdata=ecm_df[["Energy_human", "PercentChangeAdj", u_col]].values,
                 hovertemplate=(
                     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
                     "<b>Energy Use</b>: %{customdata[0]}<br>"
@@ -1300,16 +1351,15 @@ elif user_input:
                 x=ad_df["X"],
                 y=ad_df["Energy_Outcome(KWH)"],
                 mode="markers",
-                name=f"As Designed",
+                name="As Designed",
                 marker=dict(
-                    size=ad_df["BUILDING-Window-U-Value(BTU/HR-SQFT-F)"].apply(u_to_size),
+                    size=ad_df[u_col].apply(u_to_size),
                     color="red",
                     line=dict(width=2, color="red"),
                     symbol="circle",
                     opacity=0.95
                 ),
-                # customdata=ad_df[["Energy_human", "PercentChangeAdj"]].values,
-                customdata=ad_df[["Energy_human", "PercentChangeAdj", "BUILDING-Window-U-Value(BTU/HR-SQFT-F)"]].values,
+                customdata=ad_df[["Energy_human", "PercentChangeAdj", u_col]].values,
                 hovertemplate=(
                     f"<b>{x_label}</b>: %{{x:.2f}}<br>"
                     "<b>Energy Use</b>: %{customdata[0]}<br>"
@@ -1317,7 +1367,9 @@ elif user_input:
                 )
             ))
 
+        # Layout formatting
         fig.update_layout(
+            title=title,
             xaxis_title=x_label,
             yaxis_title="Energy Use (kWh, K=Thousand, M=Million, B=Billion)",
             yaxis=dict(tickformat="~s"),
@@ -1332,7 +1384,7 @@ elif user_input:
         )
 
         return fig
-    
+
     def make_savings_window_matplotlib(df, title="Energy Savings vs SC", x_label="Shading Coefficient (SC)"):
         df = df.copy()
 
@@ -1518,10 +1570,13 @@ elif user_input:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(make_combined_scatter(glazing_df, "Energy Use vs Shading coefficient (SC)", "Shading coefficient (SC)"), use_container_width=True)
+        st.plotly_chart(make_combined_scatter(glazing_df, "Energy Use vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
     with col2:
-        st.plotly_chart(make_savings_sc_barplot_matplotlib(glazing_df, "EUI Savings vs Shading coefficient (SC)", "Shading coefficient (SC)"), use_container_width=True)
-    
+        st.plotly_chart(make_savings_sc_barplot_matplotlib(glazing_df, "EUI Savings vs Shading Coefficient (SC)", "Shading Coefficient (SC)"), use_container_width=True)
+    colN1, _ = st.columns(2)
+    with colN1:
+        st.markdown("""**Note:**  *Size of Points represented by U-Value (BTU/hr·ft²·F).*""", unsafe_allow_html=True)
+
     # Loop through plots
     for exp_title, df, col, x_label in cases:
         if col in df.columns and not df.empty:
@@ -1806,523 +1861,11 @@ elif user_input:
             # Optional: show all columns
             pd.set_option('display.max_columns', None)
             st.write(variable_df)
-
-def resource_path(relative_path):
-    return os.path.join(os.getcwd(), relative_path)
-
-# --- Read Excel Sheets ---
-exportxlsx = resource_path(os.path.join("database", "AllData.xlsx"))
-wallDB = pd.read_excel(exportxlsx, sheet_name="Wall")
-roofDB = pd.read_excel(exportxlsx, sheet_name="Roof")
-windDB = pd.read_excel(exportxlsx, sheet_name="Glazing")
-wwrDB = pd.read_excel(exportxlsx, sheet_name="WWR")
-lightDB = pd.read_excel(exportxlsx, sheet_name="Light")
-equipDB = pd.read_excel(exportxlsx, sheet_name="Equip")
-
-col1, col2, col3, col4, col5, col6 = st.columns(6)
-
-# --- Wall ---
-with col1:
-    wall_options = ["As Designed"] + [f"As Designed + R{r}" for r in [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]]
-    wall_choice = st.selectbox("Wall", wall_options)
-
-# --- Roof ---
-with col2:
-    roof_options = ["As Designed"] + [f"As Designed + R{r}" for r in [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]]
-    roof_choice = st.selectbox("Roof", roof_options)
-
-# --- Glazing ---
-with col3:
-    glazing_values = windDB["GLASS-TYPE"].iloc[1:].dropna().unique()
-    cleaned_values = [v.replace("ML_", "").replace("_Others", "").replace("_", ", ") for v in glazing_values]
-    glazing_options = ["As Designed"] + cleaned_values
-    glazing_choice = st.selectbox("Glazing", glazing_options)
-
-# --- WWR ---
-with col4:
-    wwr_values = wwrDB["WWR"].iloc[0:].dropna().unique()
-    wwr_values_pct = ["As Designed"] + [f"{v*10}%" for v in wwr_values if v != 0]
-    wwr_choice = st.selectbox("WWR", wwr_values_pct)
-
-# --- Light ---
-with col5:
-    light_values = lightDB["Percent"].iloc[0:].dropna().unique()
-    light_values_pct = ["As Designed"] + [f"{v*100:.0f}%" for v in light_values]
-    light_choice = st.selectbox("Lighting Saving", light_values_pct)
-
-# --- Equip ---
-with col6:
-    equip_values = equipDB["Percent"].iloc[0:].dropna().unique()
-    equip_values_pct = ["As Designed"] + [f"{v*100:.0f}%" for v in equip_values]
-    equip_choice = st.selectbox("Equipment Saving", equip_values_pct)
-
-# --- Note ---
-st.markdown(
-    """**Note:** *Options in Glazings are coded as: <b>GlazingType, U-Value, Shading Coefficient, Lighting-Transmittence</b>.*""",
-    unsafe_allow_html=True
-)
-
-# --- Convert selections to numeric codes ---
-def get_index(choice, options):
-    """Return numeric code (0 for 'As Designed', else 1, 2, ...)"""
-    return options.index(choice)
-
-wall_code = get_index(wall_choice, wall_options)
-roof_code = get_index(roof_choice, roof_options)
-glazing_code = get_index(glazing_choice, glazing_options)
-wwr_code = get_index(wwr_choice, wwr_values_pct)
-light_code = get_index(light_choice, light_values_pct)
-equip_code = get_index(equip_choice, equip_values_pct)
-
-# --- Create single-row dataframe ---
-output_df_New = pd.DataFrame([{
-    "Batch_ID": 1,
-    "Run_ID": 1,
-    "Wall": wall_code,
-    "Roof": roof_code,
-    "Glazing": glazing_code,
-    "WWR": wwr_code,
-    "Orient": 0,
-    "Light": light_code,
-    "Equip": equip_code
-}])
-
-asdes_df = pd.DataFrame([{
-    "Batch_ID": 1,
-    "Run_ID": 1,
-    "Wall": 0,
-    "Roof": 0,
-    "Glazing": 0,
-    "WWR": 0,
-    "Orient": 0,
-    "Light": 0,
-    "Equip": 0
-}])
-output_df_New = pd.concat([output_df_New, asdes_df], ignore_index=True)
-# st.write(output_df_New)
-
-from plotly.subplots import make_subplots  
-import plotly.graph_objects as go
-
-if st.button("Simulate 🚀") and uploaded_file is not None and (output_df_New.iloc[0] != output_df_New.iloc[1]).any():
-    with st.spinner("⚡ Processing... This may take a few minutes."):
-        os.makedirs(output_inp_folder, exist_ok=True)
-        new_batch_id = f"{int(time.time())}"  # unique ID
-
-        selected_rows = output_df_New[output_df_New['Batch_ID'] == run_cnt]
-        batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
-        os.makedirs(batch_output_folder, exist_ok=True)
-        # st.write(batch_output_folder)
-        num = 1
-        modified_files = []
-        for _, row in selected_rows.iterrows():
-            selected_inp = uploaded_file.name
-            new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['Orient']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
-            # st.write(new_inp_name)
-            new_inp_path = os.path.join(batch_output_folder, new_inp_name)
-            inp_file_path = os.path.join(inp_folder, selected_inp)
-            if not os.path.exists(inp_file_path):
-                st.error(f"File {inp_file_path} not found. Skipping.")
-                continue
-            num += 1
-
-            inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
-            inp_content = lighting.updateLPD(inp_content, row['Light'])
-            inp_content = equip.updateEquipment(inp_content, row['Equip'])
-            inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
-            inp_content = remove_utility(inp_content)
-            inp_content = remove_betweenLightEquip(inp_content)
-            count = ModifyWallRoof.count_exterior_walls(inp_content)
-            if count > 1:
-                inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
-                inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
-                inp_content = insertRoof.removeDuplicates(inp_content)
-                with open(new_inp_path, 'w') as file:
-                    file.writelines(inp_content)
-                modified_files.append(new_inp_name)
-            else:
-                st.write("No Exterior-Wall Exists!")
-
-        simulate_files = []
-        # Copy and run batch script
-        if uploaded_file is None:
-            st.error("Please upload an INP file before starting the simulation.")
-        else:
-            try:
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
-                inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
-                for inp_file in inp_files:
-                    file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
-                    subprocess.call(
-                        [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
-                        shell=True
-                    )
-                    simulate_files.append(inp_file)
-            
-                subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
-                required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
-                log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
-                get_failed_simulation_data(batch_output_folder, log_file_path)
-                clean_folder(batch_output_folder)
-                combinedData = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input)
-                merged_df = pd.concat([combinedData], ignore_index=True)
-                # st.write(combinedData)
-                # st.write("ok")
-                generated_names = [os.path.splitext(f)[0] for f in modified_files]
-                merged_df = merged_df[merged_df['FileName'].isin(generated_names)]
-                # st.write(merged_df)
-                merged_df.index = ["As Designed", "ECM"]
-                # Columns contributing to energy
-                energy_cols = [
-                    "WALL CONDUCTION", "ROOF CONDUCTION", "WINDOW GLASS+FRM COND", "WINDOW GLASS SOLAR",
-                    "DOOR CONDUCTION", "INTERNAL SURFACE COND", "UNDERGROUND SURF COND",
-                    "OCCUPANTS TO SPACE", "LIGHT TO SPACE", "EQUIPMENT TO SPACE", "PROCESS TO SPACE", "INFILTRATION"
-                ]
-
-                # --- Extract and filter out zeros ---
-                as_designed = merged_df.loc["As Designed", energy_cols]
-                ecm = merged_df.loc["ECM", energy_cols]
-                as_designed = as_designed[as_designed > 0]
-                ecm = ecm[ecm > 0]
-                m_df = pd.concat([as_designed, ecm], axis=1)
-                m_df = m_df.rename(columns={'As Designed': 'As Designed (kW)', 'ECM': 'ECM (kW)'})
-                m_df.insert(0, 'Parameters', m_df.index)
-                m_df = m_df.loc[:, m_df.columns.notna()]          # drop NaN column names
-                m_df = m_df.loc[:, m_df.columns != ''] 
-                m_df['As Designed (kW)'] = pd.to_numeric(m_df['As Designed (kW)'], errors='coerce')
-                m_df['ECM (kW)'] = pd.to_numeric(m_df['ECM (kW)'], errors='coerce')
-                m_df['% Saving'] = ((m_df['As Designed (kW)'] - m_df['ECM (kW)']) / m_df['As Designed (kW)']) * 100
-                m_df['% Saving'] = m_df['% Saving'].round(1)
-                # st.write(m_df)
-
-                # --- Combine unique labels ---
-                all_labels = sorted(set(as_designed.index).union(set(ecm.index)))
-                color_map = {
-                    "WALL CONDUCTION": "#1f77b4",     # Blue
-                    "ROOF CONDUCTION": "#ff0000",     # Red
-                    "WINDOW GLASS+FRM COND": "#87ceeb",  # Light Blue
-                    "WINDOW GLASS SOLAR": "#ff6347",  # Light Red / Tomato
-                    "DOOR CONDUCTION": "#2ecc71",     # Green
-                    "INTERNAL SURFACE COND": "#90ee90",  # Light Green
-                    "UNDERGROUND SURF COND": "#4169e1",  # Royal Blue
-                    "OCCUPANTS TO SPACE": "#ff7f7f",  # Soft Red
-                    "LIGHT TO SPACE": "#3cb371",      # Medium Sea Green
-                    "EQUIPMENT TO SPACE": "#add8e6",  # Light Blue
-                    "PROCESS TO SPACE": "#66cdaa",    # Medium Aquamarine
-                    "INFILTRATION": "#ff4500"         # Orange-Red
-                }
-
-                # --- Helper to get colors in correct order ---
-                def get_colors(labels):
-                    return [color_map.get(l, "#cccccc") for l in labels]
-
-                # --- Create subplots ---
-                fig = make_subplots(
-                    rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]],
-                    subplot_titles=('As Designed', 'ECM')
-                )
-
-                # --- Add first pie (As Designed) ---
-                fig.add_trace(go.Pie(
-                    labels=as_designed.index,
-                    values=as_designed.values,
-                    # name="As Designed",
-                    hole=0.45,  # donut hole
-                    textinfo='label+percent',  # show label and %
-                    textfont=dict(size=12, color="black"),
-                    insidetextorientation='radial',
-                    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                    marker=dict(colors=get_colors(as_designed.index), line=dict(color='white', width=2))
-                ), 1, 1)
-
-                # --- Add second pie (ECM) ---
-                fig.add_trace(go.Pie(
-                    labels=ecm.index,
-                    values=ecm.values,
-                    # name="ECM",
-                    hole=0.45,  # donut hole
-                    textinfo='label+percent',
-                    textfont=dict(size=12, color="black"),
-                    insidetextorientation='radial',
-                    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                    marker=dict(colors=get_colors(ecm.index), line=dict(color='white', width=2))
-                ), 1, 2)
-                st.markdown(
-                    "<h5 style='text-align:left; color:red; font-weight:600;'>Gains Summary</h5>",
-                    unsafe_allow_html=True
-                )
-                # --- Layout styling ---
-                fig.update_layout(
-                    title_text="",
-                    title_font=dict(size=20, color="black", family="Arial"),
-                    showlegend=True,
-                    legend_orientation="h",
-                    legend_x=0.5,
-                    legend_y=-0.1,
-                    legend_xanchor="center",
-                    legend_yanchor="top",
-                    # legend_title_text="Energy Components",
-                    height=600,
-                    margin=dict(t=80, b=120),
-                    annotations=[
-                        dict(text='As Designed', x=0.18, y=0.5, font_size=14, showarrow=False),
-                        dict(text='ECM', x=0.82, y=0.5, font_size=14, showarrow=False)
-                    ]
-                )
-
-                st.plotly_chart(fig, use_container_width=True)
-                st.markdown(
-                    "<h5 style='text-align:left; color:red; font-weight:600;'>Building Peak Load Components</h5>",
-                    unsafe_allow_html=True
-                )
-                st.write(m_df)
-
-                dfsi = []
-                for file in os.listdir(batch_output_folder):
-                    if file.lower().endswith("_bepu.csv"):
-                        file_path = os.path.join(batch_output_folder, file)
-                        df = pd.read_csv(file_path)
-                        dfsi.append(df)
-                # st.write(f"Loaded {len(dfsi)} BEPU CSV files.")
-
-                # ⚠️ Here's the fix:
-                if dfsi:  # check if list is not empty
-                    dfs = dfsi[0]  # first BEPU CSV
-                    # To get the ith DataFrame, make sure 'i' exists
-                    i = 1  # or any valid index less than len(dfsi)
-                    df = dfsi[i]
-                else:
-                    st.warning("No _bepu.csv files found.")
-
-                df = df.drop(index=[0, 1])
-                dfs = dfs.drop(index=[0, 1])
-                # 2️⃣ Convert all numeric columns
-                numeric_cols = df.columns[4:]
-                numeric_cols1 = dfs.columns[4:]
-                df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-                dfs[numeric_cols1] = dfs[numeric_cols1].apply(pd.to_numeric, errors='coerce')
-
-                # 3️⃣ Group by 'Units' and sum numeric columns
-                unit_sum_df = df.groupby("BEPU-UNIT")[numeric_cols].sum().reset_index()
-                unit_sum_dfs = dfs.groupby("BEPU-UNIT")[numeric_cols1].sum().reset_index()
-
-                # st.write(unit_sum_df)
-                # st.write(unit_sum_dfs)
-
-                # Filter only KWH rows
-                df_asdes_kwh = unit_sum_dfs[unit_sum_dfs["BEPU-UNIT"] == "KWH"]
-                df_ecm_kwh = unit_sum_df[unit_sum_df["BEPU-UNIT"] == "KWH"]
-
-                # Get all parameter columns (exclude 'Unnamed: 0', 'BEPU-UNIT', 'TOTAL-BEPU')
-                param_cols = [col for col in unit_sum_dfs.columns if col not in ['Unnamed: 0', 'BEPU-UNIT', 'TOTAL-BEPU']]
-
-                # Create a combined DataFrame
-                combined_df = pd.DataFrame({
-                    "Parameters": param_cols,
-                    "As Designed (kWh)": df_asdes_kwh[param_cols].iloc[0].values,
-                    "ECM (kWh)": df_ecm_kwh[param_cols].iloc[0].values
-                })
-
-                # Calculate % Saving
-                combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["ECM (kWh)"]) /
-                                            combined_df["As Designed (kWh)"] * 100).round(2)
-
-                # Drop rows where both are 0
-                combined_df = combined_df[(combined_df["As Designed (kWh)"] > 0) | (combined_df["ECM (kWh)"] > 0)]
-                
-                st.markdown(
-                    "<h5 style='text-align:left; color:red; font-weight:600;'>Building Utility Performance</h5>",
-                    unsafe_allow_html=True
-                )
-                
-                from plotly.subplots import make_subplots
-                import plotly.graph_objects as go
-
-                # Remove zero columns
-                unit_sum_df = unit_sum_df.loc[:, (unit_sum_df != 0).any(axis=0)]
-                unit_sum_dfs = unit_sum_dfs.loc[:, (unit_sum_dfs != 0).any(axis=0)]
-
-                # Prepare data for both pies
-                component_columns_1 = [col for col in unit_sum_df.columns if col != "TOTAL-BEPU"]
-                component_columns_2 = [col for col in unit_sum_dfs.columns if col != "TOTAL-BEPU"]
-
-                contribution1 = unit_sum_df[component_columns_1].sum().reset_index()
-                contribution1.columns = ["Component", "Value"]
-
-                contribution2 = unit_sum_dfs[component_columns_2].sum().reset_index()
-                contribution2.columns = ["Component", "Value"]
-
-                # --- Create subplot with shared legend ---
-                fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]],
-                                    subplot_titles=('As Designed', 'ECM'),
-                                    horizontal_spacing=0.05)  # reduce gap between pies
-
-                # Add both pies
-                fig.add_trace(
-                    go.Pie(labels=contribution1["Component"], values=contribution1["Value"], name="As Designed"),
-                    1, 1
-                )
-                fig.add_trace(
-                    go.Pie(labels=contribution2["Component"], values=contribution2["Value"], name="ECM"),
-                    1, 2
-                )
-
-                # Update traces (larger pies)
-                fig.update_traces(
-                    hole=0.35,  # smaller hole = larger visible pie
-                    textinfo="percent+label",
-                    hoverinfo="label+value+percent",
-                    textfont=dict(size=12),
-                )
-
-                # --- Layout for larger pies and shared legend ---
-                fig.update_layout(
-                    showlegend=True,
-                    legend=dict(
-                        orientation="h",
-                        yanchor="bottom",
-                        y=-0.15,
-                        xanchor="center",
-                        x=0.5
-                    ),
-                    margin=dict(t=50, b=60, l=30, r=30),
-                    height=500,  # increase chart height for bigger pies
-                )
-
-                # --- Display in Streamlit ---
-                st.plotly_chart(fig, use_container_width=True)
-
-                # st.markdown(
-                #     "<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Summary by End Use</h5>",
-                #     unsafe_allow_html=True
-                # )
-                # st.write(combined_df)
-
-                st.markdown(
-                    "<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Comparison</h5>",
-                    unsafe_allow_html=True
-                )
-                custom_colors = ["#FF4B4B", "#1E90FF"]
-                col1, col2 = st.columns(2)
-                with col1:
-                    # Rename columns temporarily for clean legend labels
-                    temp_df = combined_df.rename(
-                        columns={
-                            "As Designed (kWh)": "As Designed",
-                            "ECM (kWh)": "ECM"
-                        }
-                    )
-
-                    fig1 = px.bar(
-                        temp_df,
-                        x="Parameters",
-                        y=["As Designed", "ECM"],
-                        barmode="group",
-                        labels={"value": "Energy (kWh)", "Parameters": ""},  # Remove x-axis label
-                        color_discrete_sequence=custom_colors
-                    )
-
-                    fig1.update_layout(
-                        legend=dict(
-                            title_text="",           # no legend title
-                            orientation="h",          # horizontal legend
-                            yanchor="bottom",
-                            y=-0.4,                   # below chart
-                            xanchor="center",
-                            x=0.5,
-                            font=dict(size=12)
-                        ),
-                        xaxis_tickangle=-45,
-                        margin=dict(t=20, b=80)
-                    )
-
-                    st.plotly_chart(fig1, use_container_width=True)
-
-                # --- Chart 2: Stacked Bar Chart ---
-                with col2:
-                    combined_df = combined_df.drop('% Saving', axis=1)
-                    # --- Build Horizontal Stacked Bar Chart manually ---
-                    fig = go.Figure()
-                    for param in combined_df["Parameters"]:
-                        values = combined_df.loc[combined_df["Parameters"] == param, ["As Designed (kWh)", "ECM (kWh)"]].values[0]
-                        fig.add_trace(go.Bar(
-                            name=param,
-                            y=["As Designed", "ECM"],   # remove (kWh)
-                            x=values,
-                            text=values,
-                            textposition='inside',
-                            orientation='h'
-                        ))
-
-                    fig.update_layout(
-                        barmode='stack',
-                        legend=dict(
-                            orientation="h",
-                            yanchor="top",
-                            y=-0.25,
-                            xanchor="center",
-                            x=0.5
-                        ),
-                        xaxis_title="Energy (kWh)",
-                        yaxis_title=""
-                    )
-
-                    # --- Show in Streamlit ---
-                    st.plotly_chart(fig, use_container_width=True)
-
-                st.markdown(
-                    "<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Summary by End Use</h5>",
-                    unsafe_allow_html=True
-                )
-                # Calculate % Saving
-                combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["ECM (kWh)"]) /
-                                            combined_df["As Designed (kWh)"] * 100).round(2)
-                st.write(combined_df)
-
-                # # 🟢 INSERT ZIP CREATION + DOWNLOAD CODE HERE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-                # import zipfile
-                # import io
-
-                # # If combined_Data is a DataFrame, save it to CSV first
-                # combined_path = os.path.join(batch_output_folder, "combined_Data.csv")
-                # if isinstance(combined_Data, pd.DataFrame):
-                #     combined_Data.to_csv(combined_path, index=False)
-
-                # # Create ZIP buffer in memory
-                # zip_buffer = io.BytesIO()
-                # with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-                #     # Add all INP files
-                #     for f in os.listdir(batch_output_folder):
-                #         if f.lower().endswith(".inp"):
-                #             zipf.write(os.path.join(batch_output_folder, f), arcname=f)
-
-                #     # Add all SIM files
-                #     for f in os.listdir(batch_output_folder):
-                #         if f.lower().endswith(".sim"):
-                #             zipf.write(os.path.join(batch_output_folder, f), arcname=f)
-
-                #     # Add combined_Data CSV
-                #     if os.path.exists(combined_path):
-                #         zipf.write(combined_path, arcname="combined_Data.csv")
-
-                # zip_buffer.seek(0)
-
-                # st.success("✅ All files processed successfully!")
-                # st.download_button(
-                #     label="📦 Download All Results (ZIP)",
-                #     data=zip_buffer,
-                #     file_name=f"{user_nm}_Results.zip",
-                #     mime="application/zip"
-                # )
-
-                # # 🟢 END INSERTION POINT
-            
-            except Exception as e:
-                print(f"Moving to next")
-
-else:
-    st.info("Select any Paramters to Compare!")
+    
+    # with colC:
+    #     with st.expander("Log File"):
+    #         # logFile["File Name"] = logFile["File Name"].str.replace(r'_[^_]+\.sim$', f'_{user_nm}.sim', regex=True)
+    #         st.write("logFile")
 
 st.markdown('<hr style="border:1px solid red">', unsafe_allow_html=True)
 st.image("images/image123456.png", width=2000) 
