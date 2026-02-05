@@ -63,7 +63,7 @@ def fix_walls(inp_content, row_num):
         # -------------------------------
         # R-VALUE MAP
         # -------------------------------
-        excel_path = r"D:\EDS\260108AWESIM\database\AllData.xlsx"
+        excel_path = "database/AllData.xlsx"
         # Read Excel
         df = pd.read_excel(excel_path, sheet_name="Wall_New")
         # Skip first 2 rows
@@ -175,7 +175,7 @@ def fix_walls(inp_content, row_num):
         return updated_inp
     
     else:
-        excel_path = r"D:\EDS\260108AWESIM\database\AllData.xlsx"
+        excel_path = "database/AllData.xlsx"
         df1 = pd.read_excel(excel_path, sheet_name="Wall_New")
         # Excel rows start at 18 for row_num = 13
         df_else = df1.iloc[19:].reset_index(drop=True)
@@ -290,7 +290,7 @@ def fix_roofs(inp_content, row_num):
         # -------------------------------
         # R-VALUE MAP
         # -------------------------------
-        excel_path = r"D:\EDS\260108AWESIM\database\AllData.xlsx"
+        excel_path = "database/AllData.xlsx"
         # Read Excel
         df = pd.read_excel(excel_path, sheet_name="Roof_New")
         # Skip first 2 rows
@@ -415,7 +415,7 @@ def fix_roofs(inp_content, row_num):
         # -------------------------------
         # R-VALUE MAP (CORRECTED)
         # -------------------------------
-        excel_path = r"D:\EDS\260108AWESIM\database\AllData.xlsx"
+        excel_path = "database/AllData.xlsx"
         df1 = pd.read_excel(excel_path, sheet_name="Roof_New")
         # Excel rows start at 18 for row_num = 13
         df_else = df1.iloc[19:].reset_index(drop=True)
