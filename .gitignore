@@ -1,0 +1,30 @@
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Specific file to ignore
+a.py
+
+# Custom extensions to ignore
+*.lin
+*.sin
+*.erp
+*.lrp
+*.srp
+
+# Common environment or temp folders
+.env
+.venv
+env/
+venv/
+*.log
+*.tmp
+.DS_Store
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+Thumbs.db

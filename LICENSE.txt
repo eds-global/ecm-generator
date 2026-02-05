@@ -1,0 +1,61 @@
+Third-Party Python Libraries Used in This Project:
+
+1. Streamlit
+   License: Apache 2.0
+   URL: https://github.com/streamlit/streamlit/blob/develop/LICENSE
+
+2. Matplotlib
+   License: PSF (Python Software Foundation) License
+   URL: https://matplotlib.org/stable/users/license.html
+
+3. Globe (assuming `globe` package)
+    License: MIT
+    URL: https://pypi.org/project/globe/
+
+4. Plotly
+   License: MIT
+   URL: https://github.com/plotly/plotly.py/blob/master/LICENSE
+
+5. Pandas
+   License: BSD 3-Clause
+   URL: https://github.com/pandas-dev/pandas/blob/main/LICENSE
+
+6. Numpy
+   License: BSD 3-Clause
+   URL: https://github.com/numpy/numpy/blob/main/LICENSE
+
+7. Xlwings
+   License: MIT
+   URL: https://github.com/xlwings/xlwings/blob/main/LICENSE.txt
+
+8. Openpyxl
+   License: MIT
+   URL: https://openpyxl.readthedocs.io/en/stable/license.html
+
+9. Pdfplumber
+   License: MIT
+   URL: https://github.com/jsvine/pdfplumber/blob/main/LICENSE
+
+10. Pillow (PIL)
+    License: PIL Software License / HPND License
+    URL: https://python-pillow.org/
+
+---------------------------------------
+Python Standard Library Modules (no license required):
+- os
+- sys
+- image (built-in or pillow)
+
+                                Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License
+You may obtain a copy of the License at
+   http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
+See the License for the specific language governing permissions and
+limitations under the License   add this and all 
