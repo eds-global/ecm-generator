@@ -1,0 +1,169 @@
+{
+  "code_version": "ECSBC_2024",
+  "units": "W/m2K",
+  "climate_zones": [
+    "Composite",
+    "Hot-Dry",
+    "Warm-Humid",
+    "Temperate",
+    "Cold"
+  ],
+  "rules": [
+    {
+      "element": "Roof",
+      "code_level": "ECSBC",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.26,
+        "Hot-Dry": 0.26,
+        "Warm-Humid": 0.26,
+        "Temperate": 0.26,
+        "Cold": 0.20
+      }
+    },
+    {
+      "element": "Roof",
+      "code_level": "ECSBC",
+      "building_category": "Assembly, Hospital",
+      "area_condition": ">10000",
+      "u_factor_limits": {
+        "Composite": 0.20,
+        "Hot-Dry": 0.20,
+        "Warm-Humid": 0.20,
+        "Temperate": 0.20,
+        "Cold": 0.20
+      }
+    },
+    {
+      "element": "Roof",
+      "code_level": "ECSBC+",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.20,
+        "Hot-Dry": 0.20,
+        "Warm-Humid": 0.20,
+        "Temperate": 0.20,
+        "Cold": 0.20
+      }
+    },
+    {
+      "element": "Roof",
+      "code_level": "SUPER ECSBC",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.18,
+        "Hot-Dry": 0.18,
+        "Warm-Humid": 0.18,
+        "Temperate": 0.18,
+        "Cold": 0.18
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.40,
+        "Hot-Dry": 0.40,
+        "Warm-Humid": 0.40,
+        "Temperate": 0.55,
+        "Cold": 0.34
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC",
+      "building_category": "No-Star Hotel, Business",
+      "area_condition": "<10000",
+      "u_factor_limits": {
+        "Composite": 0.63,
+        "Hot-Dry": 0.63,
+        "Warm-Humid": 0.63,
+        "Temperate": 0.63,
+        "Cold": 0.40
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC",
+      "building_category": "School",
+      "area_condition": "<10000",
+      "u_factor_limits": {
+        "Composite": 0.85,
+        "Hot-Dry": 0.85,
+        "Warm-Humid": 0.85,
+        "Temperate": 1.00,
+        "Cold": 0.40
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC+",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.34,
+        "Hot-Dry": 0.34,
+        "Warm-Humid": 0.34,
+        "Temperate": 0.55,
+        "Cold": 0.22
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC+",
+      "building_category": "No-Star Hotel, Business",
+      "area_condition": "<10000",
+      "u_factor_limits": {
+        "Composite": 0.44,
+        "Hot-Dry": 0.44,
+        "Warm-Humid": 0.44,
+        "Temperate": 0.44,
+        "Cold": 0.34
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "ECSBC+",
+      "building_category": "School",
+      "area_condition": "<10000",
+      "u_factor_limits": {
+        "Composite": 0.63,
+        "Hot-Dry": 0.63,
+        "Warm-Humid": 0.63,
+        "Temperate": 0.75,
+        "Cold": 0.44
+      }
+    },
+    {
+      "element": "Wall",
+      "code_level": "SUPER ECSBC",
+      "building_category": "All",
+      "area_condition": "ALL",
+      "u_factor_limits": {
+        "Composite": 0.22,
+        "Hot-Dry": 0.22,
+        "Warm-Humid": 0.22,
+        "Temperate": 0.22,
+        "Cold": 0.22
+      }
+    }
+  ],
+  "special_rules": {
+    "cool_roof": {
+      "applicable_if": "Roof not covered by solar PV or solar hot water",
+      "slope_less_than_deg": 20,
+      "min_solar_reflectance": 0.70,
+      "min_emittance": 0.75,
+      "test_standard": "ASTM E903-96"
+    },
+ 
+    "vegetated_roof": {
+      "min_vegetation_height_mm": 50
+    }
+  }
+}

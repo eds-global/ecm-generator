@@ -151,9 +151,106 @@ def remove_betweenLightEquip(inp_data):
         new_data.append(line)
     return new_data
 
+def u_to_r(u_w_m2k):
+    """Convert U (W/m²K) to R (h·ft²·°F/Btu)"""
+    return 5.678 / u_w_m2k
+
+def sqft_to_m2(area_sqft):
+    return area_sqft * 0.092903  # exact conversion
+
+
+def match_area_condition(area_m2, condition):
+    if condition == "ALL":
+        return True
+
+    if condition.startswith("<"):
+        limit = float(condition.replace("<", "").strip())
+        return area_m2 < limit
+
+    if condition.startswith(">"):
+        limit = float(condition.replace(">", "").strip())
+        return area_m2 > limit
+
+    return False
+
+
+def match_building_category(rule_category, typology):
+    if rule_category == "All":
+        return True
+
+    # handle multi-category like: "No-Star Hotel, Business"
+    categories = [c.strip().lower() for c in rule_category.split(",")]
+    return typology.lower() in categories
+
+
+def get_wall_u_limits(data, ruleset_data, climate_zone, typology):
+    """
+    data → dataframe row or dict containing area column
+    ruleset_data → JSON
+    climate_zone → "Composite", "Hot-Dry", etc
+    typology → "School", "Business", "Hospital", etc
+    """
+    limits = {}
+
+    # Wall area in SQFT → convert to m2
+    wall_area_sqft = float(data["Wall-Total-Above-Grade(SQFT)"].iloc[0])
+    wall_area_m2 = sqft_to_m2(wall_area_sqft)
+    for rule in ruleset_data["rules"]:
+        # element filter
+        if rule["element"] != "Wall":
+            continue
+
+        # typology filter
+        if not match_building_category(rule["building_category"], typology):
+            continue
+
+        # area filter
+        if not match_area_condition(wall_area_m2, rule["area_condition"]):
+            continue
+
+        # extract limits
+        code = rule["code_level"]
+        u_val = rule["u_factor_limits"].get(climate_zone)
+
+        if u_val is not None:
+            limits[code] = u_val
+
+    return limits
+
+def get_roof_u_limits(data, ruleset_data, climate_zone, typology):
+    limits = {}
+
+    # Roof area in SQFT → convert to m2
+    roof_area_sqft = float(data["ROOF-AREA(SQFT)"].iloc[0])
+    roof_area_m2 = sqft_to_m2(roof_area_sqft)
+
+    for rule in ruleset_data["rules"]:
+        # element filter
+        if rule["element"] != "Roof":
+            continue
+
+        # typology filter
+        if not match_building_category(rule["building_category"], typology):
+            continue
+
+        # area filter
+        if not match_area_condition(roof_area_m2, rule["area_condition"]):
+            continue
+
+        # extract limits
+        code = rule["code_level"]
+        u_val = rule["u_factor_limits"].get(climate_zone)
+
+        if u_val is not None:
+            limits[code] = u_val
+
+    return limits
+
+
 def energy_param_plot_wall(
     x_param_df,
     baseline_df,
+    ecsbc_climate, typologies,
     x_col,
     x_label,
     title,
@@ -282,10 +379,203 @@ def energy_param_plot_wall(
     fig.update_xaxes(title=x_label)
     fig.update_yaxes(title="Energy Use (kWh)", tickformat=".4s")
 
+    # =========================
+    # ECSBC Vertical Lines
+    # =========================
+    json_path = "rulesets/ecsbc_envelope_ruleset.json"
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            ruleset_data = json.load(f)
+        # change climate zone as needed
+        climate_zone = ecsbc_climate
+        wall_limits = get_wall_u_limits(x_param_df, ruleset_data, climate_zone, typologies)
+        line_styles = {
+            "ECSBC": dict(color="#F36608", dash="dash"),      # Dark orange
+            "ECSBC+": dict(color="#E08B45", dash="dash"),     # Medium-light orange
+            "SUPER ECSBC": dict(color="#F7C59F", dash="dash") # Very light orange
+        }
+
+        for code_level, u_val in wall_limits.items():
+            r_val = u_to_r(u_val)
+
+            fig.add_vline(
+                x=r_val,
+                line_width=2,
+                line_dash=line_styles[code_level]["dash"],
+                line_color=line_styles[code_level]["color"],
+                annotation_text=f"{code_level}<br>R={r_val:.2f}",
+                annotation_position="top",
+                annotation_font_size=11
+            )
+
     return fig
 
 # ------------ Graph ----------- #
 def energy_param_plot(
+    x_param_df,
+    baseline_df,
+    ecsbc_climate, typologies,
+    x_col,
+    x_label,
+    title,
+    show_legend=True):
+
+    df = x_param_df.copy()
+
+    # =========================
+    # Create DensityType safely
+    # =========================
+    if "DensityType" not in df.columns:
+        df["DensityIndex"] = (
+            df["FileName"]
+            .astype(str)
+            .str.split("_")
+            .str[1]
+            .astype(int)
+        )
+
+        df["DensityType"] = df["DensityIndex"].apply(
+            lambda x: "High Density" if x >= 13 else "Mid Density"
+        )
+
+    fig = go.Figure()
+
+    baseline_x = baseline_df[x_col].iloc[0]
+
+    # =========================
+    # Mid Density curve
+    # =========================
+    mid_df = (
+        df[(df["DensityType"] == "Low Density") & (df[x_col] != baseline_x)]
+        .sort_values(by=x_col)
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=mid_df[x_col],
+            y=mid_df["Energy_Outcome(KWH)"],
+            mode="lines",
+            line=dict(
+                color="#B0B0B0",
+                width=2,
+                shape="spline",
+                smoothing=1.2
+            ),
+            name="Low Density",
+            hovertemplate=(
+                f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                "<b>Energy</b>: %{y:,.0f} kWh<br>"
+                "<b>Type</b>: Low Density<extra></extra>"
+            )
+        )
+    )
+
+    # =========================
+    # High Density curve
+    # =========================
+    high_df = (
+        df[(df["DensityType"] == "High Density") & (df[x_col] != baseline_x)]
+        .sort_values(by=x_col)
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=high_df[x_col],
+            y=high_df["Energy_Outcome(KWH)"],
+            mode="lines",
+            line=dict(
+                color="#6B6B6B",
+                width=2,
+                shape="spline",
+                smoothing=1.2
+            ),
+            name="High Density",
+            hovertemplate=(
+                f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                "<b>Energy</b>: %{y:,.0f} kWh<br>"
+                "<b>Type</b>: High Density<extra></extra>"
+            )
+        )
+    )
+
+    # =========================
+    # As Designed (only point kept)
+    # =========================
+    fig.add_trace(
+        go.Scatter(
+            x=baseline_df[x_col],
+            y=baseline_df["Energy_Outcome(KWH)"],
+            mode="markers",
+            marker=dict(
+                size=14,
+                color="red",
+                symbol="circle",
+                line=dict(width=2, color="red")
+            ),
+            name="As Designed",
+            hovertemplate=(
+                f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+                "<b>Energy</b>: %{y:,.0f} kWh<br>"
+                "<b>Type</b>: As Designed<extra></extra>"
+            )
+        )
+    )
+
+    # =========================
+    # Layout
+    # =========================
+    fig.update_layout(
+        # title=title,
+        template="plotly_white",
+        height=420,
+        margin=dict(l=50, r=30, t=70, b=90),
+        font=dict(size=13),
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.25,
+            xanchor="center",
+            x=0.5
+        ),
+        showlegend=show_legend
+    )
+
+    fig.update_xaxes(title=x_label)
+    fig.update_yaxes(title="Energy Use (kWh)", tickformat=".4s")
+
+    # =========================
+    # ECSBC Vertical Lines
+    # =========================
+    json_path = "rulesets/ecsbc_envelope_ruleset.json"
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            ruleset_data = json.load(f)
+
+        # change climate zone as needed
+        climate_zone = ecsbc_climate
+        roof_limits = get_roof_u_limits(x_param_df, ruleset_data, climate_zone, typologies)
+
+        line_styles = {
+            "ECSBC": dict(color="#F36608", dash="dash"),      # Dark orange
+            "ECSBC+": dict(color="#E08B45", dash="dash"),     # Medium-light orange
+            "SUPER ECSBC": dict(color="#F7C59F", dash="dash") # Very light orange
+        }
+
+        for code_level, u_val in roof_limits.items():
+            r_val = u_to_r(u_val)
+            fig.add_vline(
+                x=r_val,
+                line_width=2,
+                line_dash=line_styles[code_level]["dash"],
+                line_color=line_styles[code_level]["color"],
+                annotation_text=f"{code_level}<br>R={r_val:.2f}",
+                annotation_position="top",
+                annotation_font_size=11
+            )
+
+    return fig
+
+def energy_param_plot_wind(
     x_param_df,
     baseline_df,
     x_col,
@@ -943,7 +1233,7 @@ def create_pdf(image_paths, project_info, values, pdf_name="Energy_Parametric_Re
     elements.append(
         Paragraph(
             "AWESIM enables an energy simulation expert to discover optimal design parameters "
-            "through systematic parametric investigations in just a few clicks. "
+            "through systematic investigations in just a few clicks. "
             "These investigations are accessible through interactive charts and "
             "downloadable reports. Please feel free to share your feedback with us at "
             "<u>support@edsglobal.com</u>.",
@@ -994,7 +1284,7 @@ def create_pdf(image_paths, project_info, values, pdf_name="Energy_Parametric_Re
 
     elements.append(
         Paragraph(
-            "AWECM Sim (referred to as the “Application” hereafter) is an outcome of the best "
+            "AWESIM (referred to as the “Application” hereafter) is an outcome of the best "
             "efforts of building simulation experts and IT developers at "
             "<b>Environmental Design Solutions Limited (EDS).</b>"
             "<br/>"
@@ -1614,7 +1904,7 @@ if st.session_state.script_choice == "tool1":
             filtered_locations = []  # No locations for "Other"
     with col2:
         # Main typologies
-        main_typologies = ["Office", "Retail", "Hospital", "Hotel", "Residential"]
+        main_typologies = ["Business", "Retail", "Hospital", "Hotel", "Residential", "School", "Assembly"]
         st.write("🌆 Select Typology")
         selected_typology = st.selectbox("", main_typologies, label_visibility="collapsed", key="typology")
 
@@ -1625,9 +1915,12 @@ if st.session_state.script_choice == "tool1":
             st.write("🌎 Select City")
             user_input = st.selectbox("", filtered_locations, label_visibility="collapsed").lower()
             selected_ = location[location["Sim_location"].str.lower() == user_input.lower()]
+            # st.write(user_input)
+            # st.write(selected_)
             # Extract Ashrae Climate Zone
             if not selected_.empty:
                 ashrae_zone = selected_["Ashrae Climate Zone"].iloc[0]
+                ecsbc_zone = selected_["NBC Climate"].iloc[0]
     else:
         with col2:
             user_input = "Other-City"
@@ -1761,7 +2054,7 @@ if st.session_state.script_choice == "tool1":
                 combined_Data = combined_Data.reset_index(drop=True)
                 
         st.session_state.all_figs = []   # 🔥 MUST RESET HERE
-        # exportCSV = resource_path(os.path.join("2026-01-29T11-34_export.csv"))
+        # exportCSV = resource_path(os.path.join("2026-01-22T06-40_export.csv"))
         # combined_Data = pd.read_csv(exportCSV)
         combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
         combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
@@ -2079,9 +2372,20 @@ if st.session_state.script_choice == "tool1":
         wall_df["DensityType"] = wall_df["DensityIndex"].apply(lambda x: "Low Density" if x > 12 else "High Density")
         glazingr_df["DensityType"] = glazingr_df["DensityIndex"].apply(lambda x: "Low Density" if x > 12 else "High Density")
         # st.write(roof_df)
+        json_path = "rulesets/ecsbc_envelope_ruleset.json"
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    ruleset_data = json.load(f)
+            except Exception as e:
+                st.error(f"Error reading JSON file: {e}")
+        else:
+            st.error("Ruleset file not found ❌")
+        # st.write(combined_Data)
+        # Wall-Total-Above-Grade(SQFT)
         all_figs = []   # <-- collect all charts here
-        fig_wall = energy_param_plot_wall(wall_df,baseline,"R-VAL-W","Wall R-Value (h·ft²·°F/Btu)","Energy Use vs Wall R-Value",show_legend=True)
-        fig_roof = energy_param_plot(roof_df,baseline,"R-VAL-R","Roof R-Value (h·ft²·°F/Btu)","Energy Use vs Roof R-Value",show_legend=True)
+        fig_wall = energy_param_plot_wall(wall_df, baseline, ecsbc_zone, selected_typology, "R-VAL-W","Wall R-Value (h·ft²·°F/Btu)","Energy Use vs Wall R-Value",show_legend=True)
+        fig_roof = energy_param_plot(roof_df, baseline, ecsbc_zone, selected_typology, "R-VAL-R","Roof R-Value (h·ft²·°F/Btu)","Energy Use vs Roof R-Value",show_legend=True)
         # all_figs.extend([fig_wall, fig_roof])
         st.session_state.all_figs.extend([fig_wall, fig_roof])
         st.markdown(f"""<br>""", unsafe_allow_html=True)
@@ -2101,7 +2405,7 @@ if st.session_state.script_choice == "tool1":
             st.plotly_chart(fig_equip, use_container_width=True)
         
         fig_SC_glazing = make_single_plot(glazing_df,x_col="SHGC",title="Energy Use vs SHGC",x_label="SHGC")
-        fig_R_glazing = energy_param_plot(glazingr_df,baseline,"R-VAL-Wind","Window R-Value (h·ft²·°F/Btu)","Energy Use vs Window R-Value",show_legend=True)
+        fig_R_glazing = energy_param_plot_wind(glazingr_df,baseline,"R-VAL-Wind","Window R-Value (h·ft²·°F/Btu)","Energy Use vs Window R-Value",show_legend=True)
         # fig_R_glazing = make_single_plot(glazingr_df,x_col="R-VAL-Wind",title="Energy Use vs R-Value",x_label="R-Value (HR·ft²·°F / Btu)")
         st.session_state.all_figs.extend([fig_SC_glazing, fig_R_glazing])
         col1, col2 = st.columns(2)
@@ -2179,6 +2483,43 @@ if st.session_state.script_choice == "tool1":
             )
 
         st.success("Report Generated!")
+
+if st.session_state.script_choice == "tool2":
+    json_path = r"D:\EDS\260108AWESIM\rulesets\ecsbc_envelope_ruleset.json"
+
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                ruleset_data = json.load(f)
+
+            st.success("ECBC Envelope Ruleset Loaded Successfully ✅")
+
+            # Display nicely formatted JSON
+            st.json(ruleset_data, expanded=False)
+
+        except Exception as e:
+            st.error(f"Error reading JSON file: {e}")
+
+    else:
+        st.error("Ruleset file not found ❌")
+
+    st.markdown("""
+    <div style="
+        border:1px solid #e0e0e0;
+        border-radius:12px;
+        padding:30px;
+        text-align:center;
+        background:#fafafa;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    ">
+        <h2>🚧 Coming Soon</h2>
+        <p style="font-size:16px;">
+            This feature is under active development.<br>
+            It will be available in an upcoming release.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
 
 st.markdown('<hr style="border:1px solid red">', unsafe_allow_html=True)
 st.image("images/image123456.png", width=2000) 
