@@ -186,6 +186,7 @@ def get_files_for_data_extraction(output_path, log_file_path, new_batch_id, loca
         #extracting data from sim file
         try:
             get_report_and_save(ls_c.get_LSC_report, sim_file_path, 'lsc', output_path)
+            get_report_and_save(ls_c.get_LSC_losses_report, sim_file_path, 'lsc_loss', output_path)
             get_report_and_save(lv_d.get_LVD_report, sim_file_path, 'lvd', output_path)
             get_report_and_save(lvd_summary.get_LVD_Summary_report, sim_file_path, 'lvd_Summary', output_path)
             get_report_and_save(pv_a_loop.get_PVA_report, sim_file_path, 'pva_loop', output_path)

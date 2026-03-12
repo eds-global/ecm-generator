@@ -90,7 +90,7 @@ def fix_walls(inp_content, row_num):
         )
 
         xps_material = (
-            '"XPS"  = MATERIAL\n'
+            '"XPS_Wall"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
             f'  THICKNESS       = {rvalue:.3f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
@@ -117,7 +117,7 @@ def fix_walls(inp_content, row_num):
         # -------------------------------
         layer_block = (
             '"AWESIM_WALL_LYR"  = LAYERS\n'
-            '  MATERIAL       = ("CP", "XPS", "Brick", "CP")\n'
+            '  MATERIAL       = ("CP", "XPS_Wall", "Brick", "CP")\n'
             '  THICKNESS      = (0.0656, {:.3f}, 0.754, 0.0656)\n'
             '  ..\n\n'
         ).format(rvalue)
@@ -197,7 +197,7 @@ def fix_walls(inp_content, row_num):
         )
 
         xps_material = (
-            '"XPS"  = MATERIAL\n'
+            '"XPS_Wall"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
             f'  THICKNESS       = {rvalue:.4f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
@@ -223,7 +223,7 @@ def fix_walls(inp_content, row_num):
         # -------------------------------
         layer_block = (
             '"AWESIM_WALL_LYR"  = LAYERS\n'
-            '  MATERIAL       = ("CB", "XPS", "GYP")\n'
+            '  MATERIAL       = ("CB", "XPS_Wall", "GYP")\n'
             '  THICKNESS      = (0.06562, {:.4f}, 0.04921)\n'
             '  ..\n\n'
         ).format(rvalue)
@@ -317,7 +317,7 @@ def fix_roofs(inp_content, row_num):
         )
 
         xps_material = (
-            '"XPS"  = MATERIAL\n'
+            '"XPS_Roof"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
             f'  THICKNESS       = {rvalue:.3f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
@@ -354,7 +354,7 @@ def fix_roofs(inp_content, row_num):
         # -------------------------------
         layer_block = (
             '"AWESIM_ROOF_LYR"  = LAYERS\n'
-            '  MATERIAL       = ("CP", "XPS", "Brick", "Concrete", "CP")\n'
+            '  MATERIAL       = ("CP", "XPS_Roof", "Brick", "Concrete", "CP")\n'
             '  THICKNESS      = (0.0656, {:.3f}, 0.25, 0.492, 0.0656)\n'
             '  ..\n\n'
         ).format(rvalue)
@@ -437,7 +437,7 @@ def fix_roofs(inp_content, row_num):
             '  ..\n\n'
         )
         xps_material = (
-            '"XPS"  = MATERIAL\n'
+            '"XPS_Roof"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
             f'  THICKNESS       = {rvalue:.3f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
@@ -451,7 +451,7 @@ def fix_roofs(inp_content, row_num):
         # -------------------------------
         layer_block = (
             '"AWESIM_ROOF_LYR"  = LAYERS\n'
-            '  MATERIAL       = ("MetDeck", "XPS")\n'
+            '  MATERIAL       = ("MetDeck", "XPS_Roof")\n'
             '  THICKNESS      = (0.021, {:.3f})\n'
             '  ..\n\n'
         ).format(rvalue)
@@ -860,3 +860,57 @@ def fix_roofs(inp_content, row_num):
 #     )
 
 #     return updated_inp
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+def fix_walls_roofs(inp_content, row_num_wall, row_num_roof):
+    if isinstance(inp_content, list):
+        inp_content = "".join(inp_content)
+
+    if row_num_wall == 0 and row_num_roof == 0:
+        return inp_content
+    
+    # Regex to capture full MATERIAL blocks
+    material_pattern = re.compile(
+        r'"([^"]+)"\s*=\s*MATERIAL\s*.*?\n\s*\.\.',
+        re.DOTALL | re.IGNORECASE
+    )
+
+    seen_materials = set()
+    cleaned_blocks = []
+    removed_blocks = []
+
+    pos = 0
+    output = ""
+
+    for match in material_pattern.finditer(inp_content):
+        mat_name = match.group(1).strip()
+        block = match.group(0)
+        start, end = match.span()
+
+        # Add text before this block
+        output += inp_content[pos:start]
+
+        if mat_name not in seen_materials:
+            # Keep first occurrence
+            seen_materials.add(mat_name)
+            output += block
+        else:
+            # Skip duplicate block
+            removed_blocks.append(mat_name)
+
+        pos = end
+
+    # Add remaining content after last match
+    output += inp_content[pos:]
+
+    # Optional debug print
+    # if removed_blocks:
+    #     st.write("Removed duplicate MATERIAL definitions for:", set(removed_blocks))
+
+    return output
+        

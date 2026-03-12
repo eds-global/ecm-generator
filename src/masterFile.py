@@ -481,6 +481,7 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
     powerLight = []
     EquipTotal = []
     LscVal = []
+    LscLossVal = []
     EnergyOutcome = []
     EnergyOutcome_Therm = []
     Ratio_WWR = []
@@ -536,6 +537,7 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
         zonefiles = gb.glob(os.path.join(inputPath, f'{path}_sva_Zone.csv'), recursive=True)
         lvd_summary = gb.glob(os.path.join(inputPath, f'{path}_lvd_Summary.csv'), recursive=True)
         lscfiles = gb.glob(os.path.join(inputPath, f'{path}_lsc.csv'), recursive=True)
+        lscfiles_losess = gb.glob(os.path.join(inputPath, f'{path}_lsc_loss.csv'), recursive=True)
         bepufiles = gb.glob(os.path.join(inputPath, f'{path}_bepu.csv'), recursive=True)
         svafiles = gb.glob(os.path.join(inputPath, f'{path}_sva.csv'), recursive=True)
         psefiles = gb.glob(os.path.join(inputPath, f'{path}_pse.csv'), recursive=True)
@@ -566,7 +568,7 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
             print("lvc data missing")
         
         # iterate in each csvfiles variables at a time using zip function
-        for lvbfile, lvdfile, zonefile, summary, lscfile, bepufile, svafile, psefile, shgcfile, lvcfile in zip(lvbfiles, lvdfiles, zonefiles, lvd_summary, lscfiles, bepufiles, svafiles, psefiles, shgcfiles, lvcfiles):
+        for lvbfile, lvdfile, zonefile, summary, lscfile, bepufile, svafile, psefile, shgcfile, lvcfile, lscfile_loss in zip(lvbfiles, lvdfiles, zonefiles, lvd_summary, lscfiles, bepufiles, svafiles, psefiles, shgcfiles, lvcfiles, lscfiles_losess):
             # store all csvs info. in dataframe
             lvb_data = pd.read_csv(lvbfile)
             lvd_data = pd.read_csv(lvdfile)
@@ -577,9 +579,17 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
             sva_data = pd.read_csv(svafile)
             pse_data = pd.read_csv(psefile)
             lvc_data = pd.read_csv(lvcfile)
+            lsc_loss_data = pd.read_csv(lscfile_loss)
             lvb_data['TYPE'] = lvb_data['SPACE'].map(zones.set_index('SPACE')['TYPE'])
             # lv['F'] = df1['SPACE'].map(df2.set_index('SPACE')['F'])
             lvb_data['Areas'] = lvb_data['AREA(SQFT)'] * lvb_data['SPACE*FLOOR']
+            # --- LIGHT AREA ONLY ---
+            light_mask = lvb_data['LIGHTS'] != 0
+            total_light_Area = lvb_data.loc[light_mask, 'Areas'].sum()
+
+            # --- EQUIP AREA ONLY ---
+            equip_mask = lvb_data['EQUIP'] != 0
+            total_equip_Area = lvb_data.loc[equip_mask, 'Areas'].sum()
 
             #exit()
             lvc_data["Effective_Area"] = lvc_data["MULTIPLIER"] * lvc_data["GLASS AREA (SQFT)"]
@@ -589,6 +599,8 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
             # st.write(weighted_avg_shading)
             shgc.append(weighted_avg_shading/0.87)
             LscVal.append(lsc_data) # all column of lsc_csv in combined_data.
+            lsc_loss_data = lsc_loss_data.rename(columns=lambda c: f"{c}_loss")
+            LscLossVal.append(lsc_loss_data)
             Totalenergy = bepu_data['TOTAL-BEPU'].sum()
             EnergyOutcome.append(Totalenergy)
 
@@ -759,9 +771,14 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
 
     result = pd.concat([combined_data, wallArea, wallU, windowArea, windowU], axis=1)
     concatenated_lsc_data = pd.concat(LscVal, ignore_index=True)
+    concatenated_lsc_loss_data = pd.concat(LscLossVal, ignore_index=True)
     
     # Concatenate the DataFrames along the columns axis
-    result = pd.concat([result, concatenated_lsc_data], axis=1)
+    result = pd.concat([result, concatenated_lsc_data, concatenated_lsc_loss_data], axis=1)
+    # combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
+    # combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
+    result["Equip(W/Sqft)"] = round((result["Equipment-Total(W)"]/ total_equip_Area),1)
+    result["Light(W/Sqft)"] = round((result["Power Lighting Total(W)"]/ total_light_Area),1)
     result['WWR'] = Ratio_WWR
     result['EFLH'] = eflh
     result['R-VAL-W'] = r_value

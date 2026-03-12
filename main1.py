@@ -235,12 +235,12 @@ location = pd.read_csv(location_path)
 locations = sorted(location['Sim_location'].unique())
 updated_df = pd.read_excel(output_csv)
 
-updated_df["Wall_Roof_Glazing_WWR_Orient_Light_Equip"] = (
+updated_df["Wall_Roof_Glazing_WWR_GlazingR_Light_Equip"] = (
 updated_df["Wall"].astype(str) + "_" +
 updated_df["Roof"].astype(str) + "_" +
 updated_df["Glazing"].astype(str) + "_" +
 updated_df["WWR"].astype(str) + "_" +
-updated_df["Orient"].astype(str) + "_" +
+updated_df["GlazingR"].astype(str) + "_" +
 updated_df["Light"].astype(str) + "_" +
 updated_df["Equip"].astype(str)
 )
@@ -1968,7 +1968,7 @@ if st.button("Simulate 🚀") and uploaded_file is not None and (output_df_New.i
                 combinedData = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input)
                 merged_df = pd.concat([combinedData], ignore_index=True)
                 # st.write(combinedData)
-                # st.write("ok")
+                st.write("ok")
                 generated_names = [os.path.splitext(f)[0] for f in modified_files]
                 merged_df = merged_df[merged_df['FileName'].isin(generated_names)]
                 # st.write(merged_df)

@@ -83,7 +83,7 @@ def get_BEPU_report(name, path):
             bepu_df = pd.concat([other_df, bepu_df], axis=1)
 
             # alloting columns name to each columns
-            bepu_df.columns = ['BEPU-SOURCE', 'BEPU-UNIT', 'LIGHTS', 'TASK-LIGHTS', 'MISQ-EQUIP', 'SPACE-HEATING',
+            bepu_df.columns = ['BEPU-SOURCE', 'BEPU-UNIT', 'LIGHTS', 'TASK-LIGHTS', 'MISC-EQUIP', 'SPACE-HEATING',
                                 'SPACE-COOLING', 'HEAT-REJECT', 'PUMPS & AUX', 'VENT FANS', 'REFRING-DISPLAY',
                                 'HT-PUMP-SUPPLEMENT', 'DOMEST-HOT-WTR', 'EXT-USAGE', 'TOTAL']
             # take that rows in 'BEPU-UNIT' which contains '.' and ''
