@@ -2682,6 +2682,69 @@ def make_single_plot_shgc(df, x_col, title, x_label):
     fig.update_yaxes(title="Energy Use (kWh)", tickformat=".4s")
     return fig
 
+def make_single_plot_cop(df, x_col, title, x_label):
+    df = df.copy().reset_index(drop=True)
+    df["CaseType"] = df.index.map(lambda i: "As Designed" if i == 0 else "Parameter")
+    def human_readable(num):
+        if num >= 1_000_000_000:
+            return f"{num/1_000_000_000:.1f}B"
+        elif num >= 1_000_000:
+            return f"{num/1_000_000:.1f}M"
+        elif num >= 1_000:
+            return f"{num/1_000:.1f}k"
+        else:
+            return str(num)
+
+    df["Energy_human"] = df["Energy_Outcome(KWH)"].apply(human_readable)
+    fig = go.Figure()
+
+    # Parameter
+    ecm_df = df[df["CaseType"] == "Parameter"]
+    fig.add_trace(go.Scatter(
+        x=ecm_df[x_col],
+        y=ecm_df["Energy_Outcome(KWH)"],
+        mode="lines",   # ⬅️ line instead of only points
+        name="Parameter",
+        line=dict(
+            color="#6B6B6B",    # ⬅️ nicer blue (not grey)
+            width=2
+        ),
+        marker=dict(
+            size=8,
+            color="#6B6B6B"
+        ),
+        customdata=ecm_df[["Energy_human"]].values,
+        hovertemplate=(
+            f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+            "<b>Energy</b>: %{customdata[0]}<extra></extra>"
+        )
+    ))
+
+    # As Designed
+    ad_df = df[df["CaseType"] == "As Designed"]
+    fig.add_trace(go.Scatter(
+        x=ad_df[x_col],
+        y=ad_df["Energy_Outcome(KWH)"],
+        mode="markers",
+        name="As Designed",
+        marker=dict(size=12, color="red", line=dict(width=2, color="red")),
+        customdata=ad_df[["Energy_human"]].values,
+        hovertemplate=(
+            f"<b>{x_label}</b>: %{{x:.2f}}<br>"
+            "<b>Energy</b>: %{customdata[0]}<extra></extra>"
+        )
+    ))
+
+    fig.update_layout(
+        xaxis_title=x_label,
+        yaxis_title="Energy Use (kWh)",
+        yaxis=dict(tickformat=".1s"),
+        legend=dict(orientation="h", y=-0.3, x=0.5, xanchor="center"),
+        height=450
+    )
+    fig.update_yaxes(title="Energy Use (kWh)", tickformat=".4s")
+    return fig
+
 def card(col, title, value):
     col.markdown(f"""
     <div class="metric-card">
@@ -3103,12 +3166,12 @@ def create_pdf(image_paths, project_info, values, pdf_name="Energy_Parametric_Re
     # KPI TABLE DATA
     # -------------------------------
     kpi_pairs = [
-        ("Area (ft²)", f"{values.get('area', 0):,.0f}" if values.get("area") else 0),
-        ("Conditioned Area (%)", f"{values.get('condArea', 0):.1f}" if values.get("condArea") else 0),
+        ("Wall-Area (ft²)", f"{values.get('area', 0):,.0f}" if values.get("area") else 0),
+        ("Conditioned Area (%)", f"{values.get('condArea', 0):,.1f}" if values.get("condArea") else 0),
         ("Window-to-Wall Ratio (%)", f"{values.get('wwr', 0):.1f}" if values.get("wwr") else 0),
-        ("Wall-to-Floor Ratio (%)", f"{values.get('wfr', 0):.1f}" if values.get("wfr") else 0),
-        ("Above-Grade Area (%)", f"{values.get('agArea', 0):,.1f}" if values.get("agArea") else 0),
-        ("Envelope-to-Floor Ratio (%)", f"{values.get('envelopeFloorArea', 0):.1f}" if values.get("envelopeFloorArea") else 0),
+        ("Wall-to-Floor Ratio (%)", f"{values.get('1.4', 1.4):.1f}" if values.get("1.4") else 1.4),
+        ("Wall-Above-Grade Area (%)", f"{values.get('agArea', 0):,.1f}" if values.get("agArea") else 0),
+        ("Envelope-to-Floor Ratio (%)", f"{values.get('1.8', 1.8):.1f}" if values.get("1.8") else 1.8),
         ("Estimated Hours of Use", f"{values.get('estimateHrsUse', 0):,.0f}" if values.get("estimateHrsUse") else 0),
         ("", values.get("", "")),
     ]
@@ -3972,6 +4035,7 @@ if st.session_state.script_choice == "tool1":
             if not selected_.empty:
                 ashrae_zone = selected_["Ashrae Climate Zone"].iloc[0]
                 ecsbc_zone = selected_["NBC Climate"].iloc[0]
+                ecsbc_zone = "Warm Humid"
     else:
         with col2:
             user_input = "Other-City"
@@ -4021,94 +4085,124 @@ if st.session_state.script_choice == "tool1":
         st.session_state.all_figs = []
 
     if st.button("Simulate 🚀"):
-        # st.cache_data.clear()
-        # st.cache_resource.clear()
-        # if uploaded_file is None:
-        #     st.warning("⚠️ Please Upload .INP File!")
-        #     st.stop()
-        # if bin_name is None:
-        #     st.warning("⚠️ Please Upload .BIN File!")
-        #     st.stop()
-        # if not project_name_clean:
-        #     st.warning("⚠️ Please enter a project name.")
-        #     st.stop()
-        # with st.spinner("⚡ Processing... This may take a few minutes."):
-        #     os.makedirs(output_inp_folder, exist_ok=True)
-        #     new_batch_id = f"{int(time.time())}"  # unique ID
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        if uploaded_file is None:
+            st.warning("⚠️ Please Upload .INP File!")
+            st.stop()
+        if bin_name is None:
+            st.warning("⚠️ Please Upload .BIN File!")
+            st.stop()
+        if not project_name_clean:
+            st.warning("⚠️ Please enter a project name.")
+            st.stop()
+        with st.spinner("⚡ Processing... This may take a few minutes."):
+            os.makedirs(output_inp_folder, exist_ok=True)
+            new_batch_id = f"{int(time.time())}"  # unique ID
 
-        #     selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
-        #     batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
-        #     os.makedirs(batch_output_folder, exist_ok=True)
+            selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
+            batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
+            os.makedirs(batch_output_folder, exist_ok=True)
 
-        #     num = 1
-        #     modified_files = []
-        #     for _, row in selected_rows.iterrows():
-        #         selected_inp = uploaded_file.name
-        #         new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['GlazingR']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
-        #         new_inp_path = os.path.join(batch_output_folder, new_inp_name)
+            num = 1
+            modified_files = []
+            for _, row in selected_rows.iterrows():
+                selected_inp = uploaded_file.name
+                new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['GlazingR']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
+                new_inp_path = os.path.join(batch_output_folder, new_inp_name)
 
-        #         inp_file_path = os.path.join(inp_folder, selected_inp)
-        #         if not os.path.exists(inp_file_path):
-        #             st.error(f"File {inp_file_path} not found. Skipping.")
-        #             continue
+                inp_file_path = os.path.join(inp_folder, selected_inp)
+                if not os.path.exists(inp_file_path):
+                    st.error(f"File {inp_file_path} not found. Skipping.")
+                    continue
 
-        #         # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
-        #         num += 1
+                # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
+                num += 1
 
-        #         # Apply modifications
-        #         inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
-        #         # inp_content = orient.updateOrientation(inp_content, row["Orient"])
-        #         inp_content = lighting.updateLPD(inp_content, row['Light'])
-        #         # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
-        #         # inp_content = insertRoof.update_Material_Layers_Construction(inp_content, row["Roof"])
-        #         # inp_content = insertRoof.removeDuplicates(inp_content)
-        #         inp_content = equip.updateEquipment(inp_content, row['Equip'])
-        #         inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
-        #         inp_content = windows.insert_glass_UVal(inp_content, row['GlazingR'])
-        #         inp_content =remove_utility(inp_content)
-        #         # inp_content = windows.readSCUVal(inp_content, row['Glazing'])
-        #         if row['Light'] > 0:
-        #             inp_content = remove_betweenLightEquip(inp_content)
-        #         count = ModifyWallRoof.count_exterior_walls(inp_content)
-        #         if count > 1:
-        #             inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
-        #             inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
-        #             # inp_content = insertRoof.removeDuplicates(inp_content)
-        #             with open(new_inp_path, 'w') as file:
-        #                 file.writelines(inp_content)
-        #             modified_files.append(new_inp_name)
-        #         else:
-        #             st.write("No Exterior-Wall Exists!")
+                # Apply modifications
+                inp_content = wwr.process_window_insertion_workflow(inp_file_path, row["WWR"])
+                # inp_content = orient.updateOrientation(inp_content, row["Orient"])
+                inp_content = lighting.updateLPD(inp_content, row['Light'])
+                # inp_content = insertWall.update_Material_Layers_Construction(inp_content, row["Wall"])
+                # inp_content = insertRoof.update_Material_Layers_Construction(inp_content, row["Roof"])
+                # inp_content = insertRoof.removeDuplicates(inp_content)
+                inp_content = equip.updateEquipment(inp_content, row['Equip'])
+                inp_content = windows.insert_glass_types_multiple_outputs(inp_content, row['Glazing'])
+                inp_content = windows.insert_glass_UVal(inp_content, row['GlazingR'])
+                inp_content =remove_utility(inp_content)
+                # inp_content = windows.readSCUVal(inp_content, row['Glazing'])
+                if row['Light'] > 0:
+                    inp_content = remove_betweenLightEquip(inp_content)
+                count = ModifyWallRoof.count_exterior_walls(inp_content)
+                if count > 1:
+                    inp_content = ModifyWallRoof.fix_walls(inp_content, row["Wall"])
+                    inp_content = ModifyWallRoof.fix_roofs(inp_content, row["Roof"])
+                    inp_content = insertRoof.removeDuplicates(inp_content)
+                    with open(new_inp_path, 'w') as file:
+                        file.writelines(inp_content)
+                    modified_files.append(new_inp_name)
+                else:
+                    st.write("No Exterior-Wall Exists!")
         
-        #     simulate_files = []
-        #     if uploaded_file is None:
-        #         st.error("Please upload an INP file before starting the simulation.")
-        #     else:
-        #         # st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
-        #         script_dir = os.path.dirname(os.path.abspath(__file__))
-        #         shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
-        #         inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
-        #         for inp_file in inp_files:
-        #             file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
-        #             subprocess.call(
-        #                 [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
-        #                 shell=True
-        #             )
-        #             simulate_files.append(inp_file)
+            simulate_files = []
+            if uploaded_file is None:
+                st.error("Please upload an INP file before starting the simulation.")
+            else:
+                # st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
+                inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
+                for inp_file in inp_files:
+                    file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
+                    subprocess.call(
+                        [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
+                        shell=True
+                    )
+                    simulate_files.append(inp_file)
             
-        #         subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
-        #         required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
-        #         log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
-        #         get_failed_simulation_data(batch_output_folder, log_file_path)
-        #         clean_folder(batch_output_folder)
-        #         combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input, selected_typology)
-        #         combined_Data = combined_Data.reset_index(drop=True)
+                subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+                required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
+                log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
+                get_failed_simulation_data(batch_output_folder, log_file_path)
+                clean_folder(batch_output_folder)
+                combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input, selected_typology)
+                combined_Data = combined_Data.reset_index(drop=True)
                 
         st.session_state.all_figs = []   # 🔥 MUST RESET HERE
-        exportCSV = resource_path(os.path.join("2026-02-18T08-49_export.csv"))
-        combined_Data = pd.read_csv(exportCSV)
+        # exportCSV = resource_path(os.path.join("2026-03-18T10-43_export.csv"))
+        # combined_Data = pd.read_csv(exportCSV)
+        df_num = combined_Data[
+            combined_Data['FileName'].str.contains(r'_([1-4])Rajeev1$') |
+            (combined_Data['FileName'] == '0_0_0_0_0_0_0_Rajeev1')
+        ]
+
+        # Bring base case to top
+        df_num = pd.concat([
+            df_num[df_num['FileName'] == '0_0_0_0_0_0_0_Rajeev1'],
+            df_num[df_num['FileName'] != '0_0_0_0_0_0_0_Rajeev1']
+        ])
+        # st.write(df_num)
         # st.write(combined_Data)
-        ashrae_zone = "Very Cold"
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        # fig = px.scatter(
+        #     df_num,
+        #     x="COP",
+        #     y="Energy_Outcome(KWH)",
+        #     title="COP vs Energy Outcome",
+        #     labels={
+        #         "COP": "Coefficient of Performance",
+        #         "Energy_Outcome(KWH)": "Energy Outcome (kWh)"
+        #     }
+        # )
+
+        # fig.update_layout(
+        #     xaxis_title="COP",
+        #     yaxis_title="Energy Outcome (kWh)"
+        # )
+
+        # fig.show()
+        ashrae_zone = "Hot Humid"
         # combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
         # combined_Data["Light(W/Sqft)"] = combined_Data["Power Lighting Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
         path = os.path.join(os.path.dirname(__file__), "AllData.xlsx")
@@ -4459,6 +4553,7 @@ if st.session_state.script_choice == "tool1":
         # st.plotly_chart(fig, use_container_width=True)
         all_figs = []   # <-- collect all charts here
         st.markdown(f"""<br>""", unsafe_allow_html=True)
+        ecsbc_zone = "Warm Humid"
         st.markdown("<h5 style='color:#dc2626; text-align:left;'>Energy Use</h5>", unsafe_allow_html=True)
         fig_wall = energy_param_plot_wall(wall_df, baseline, ecsbc_zone, selected_typology, "R-VAL-W","Wall R-Value (h·ft²·°F/Btu)","Energy Use vs Wall R-Value",show_legend=True)
         fig_roof = energy_param_plot(roof_df, baseline, ecsbc_zone, selected_typology, "R-VAL-R","Roof R-Value (h·ft²·°F/Btu)","Energy Use vs Roof R-Value",show_legend=True)
@@ -4492,6 +4587,11 @@ if st.session_state.script_choice == "tool1":
             st.plotly_chart(fig_SC_glazing, use_container_width=True)
         with col2:
             st.plotly_chart(fig_R_glazing, use_container_width=True)
+
+        # fig_COP = make_single_plot_cop(df_num,x_col="COP",title="Energy Use vs SHGC",x_label="COP")
+        # col1, _ = st.columns(2)
+        # with col1:
+        #     st.plotly_chart(fig_COP, use_container_width=True)
         # st.divider()
         st.markdown("<h5 style='color:#dc2626; text-align:left;'>Gains and Losses</h5>", unsafe_allow_html=True)
 
@@ -4770,6 +4870,7 @@ if st.session_state.script_choice == "tool1":
 
         with st.spinner("Generating Report..."):
             img_paths = save_figs_as_images(st.session_state.all_figs)
+            ashrae_zone = "Hot Humid"
             cz = ashrae_zone
             if isinstance(cz, str) and "Ext." in cz:
                 cz = cz.replace("Ext.", "Extremely")
@@ -4782,6 +4883,7 @@ if st.session_state.script_choice == "tool1":
                 "typology": selected_typology,
                 "weather": weather_path,
             }
+            ecsbc_zone = "Warm Humid"
             values = {
                 "area": st.session_state.get("area_ft2"),
                 "condArea": st.session_state.get("conditioned_pct"),
@@ -4829,6 +4931,16 @@ if st.session_state.script_choice == "tool2":
     wwrDB = pd.read_excel(exportxlsx, sheet_name="WWR")
     lightDB = pd.read_excel(exportxlsx, sheet_name="Light")
     equipDB = pd.read_excel(exportxlsx, sheet_name="Equip")
+    # --- Read new Database ---
+    newDatabaseOptimal = resource_path(os.path.join("database", "final_Parameter_DB.xlsx"))
+    R_WallDB = pd.read_excel(newDatabaseOptimal, sheet_name="WallR")
+    R_RoofDB = pd.read_excel(newDatabaseOptimal, sheet_name="RoofR")
+    typology = pd.read_excel(newDatabaseOptimal, sheet_name="Typology")
+    glazingSC = pd.read_excel(newDatabaseOptimal, sheet_name="GlazingSC")
+    glazingU = pd.read_excel(newDatabaseOptimal, sheet_name="GlazingR")
+    wwrDB = pd.read_excel(newDatabaseOptimal, sheet_name="WWR")
+    lightDB = pd.read_excel(newDatabaseOptimal, sheet_name="Lighting")
+    equipDB = pd.read_excel(newDatabaseOptimal, sheet_name="Equipment")
 
     if "Country" in location1.columns:
         # If CSV already has Country column
@@ -4842,7 +4954,7 @@ if st.session_state.script_choice == "tool2":
         project_name1 = st.text_input("", placeholder="Enter project name", label_visibility="collapsed")
         
         # project_name = st.text_input("📝 Project Name", placeholder="Enter project name")
-        project_name_clean1 = project_name1.replace(" ", "")
+        project_name_clean1 = project_name1.replace(" ", "").replace("_","")
         user_nm1 = project_name_clean1
         if project_name_clean1:
             parent_dir1 = os.path.dirname(os.getcwd())
@@ -4863,9 +4975,9 @@ if st.session_state.script_choice == "tool2":
             filtered_locations1 = []  # No locations for "Other"
     with col2:
         # Main typologies
-        main_typologies1 = ["Business", "Retail", "Hospital", "Hotel", "Residential", "School", "Assembly"]
+        typology_list = typology["Typology"].dropna().unique().tolist()
         st.write("🌆 Select Typology")
-        selected_typology1 = st.selectbox("", main_typologies1, label_visibility="collapsed", key="typology")
+        selected_typology1 = st.selectbox("", typology_list, label_visibility="collapsed", key="typology")
 
     bin_name1 = ""
     # Only show City dropdown if not "Other"
@@ -4932,38 +5044,40 @@ if st.session_state.script_choice == "tool2":
     col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
     # --- Wall ---
     with col1:
-        wall_options = ["As Designed"] + [f"R{r}" for r in [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]]
+        wall_r_values = R_WallDB["R-Value"].dropna().tolist()
+        wall_options = ["As Designed"] + [f"R{r}" for r in wall_r_values]
         wall_choice = st.selectbox("Wall R-Value", wall_options)
     # --- Roof ---
     with col2:
-        roof_options = ["As Designed"] + [f"R{r}" for r in [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]]
+        roof_r_values = R_RoofDB["R-Value"].dropna().tolist()
+        roof_options = ["As Designed"] + [f"R{r}" for r in roof_r_values]
         roof_choice = st.selectbox("Roof R-Value", roof_options)
     # --- Glazing ---
     with col3:
-        glazing_scoptions = ["As Designed"] + [0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        glazingsc_values = glazingSC["SC"].dropna().tolist()
+        glazing_scoptions = [f"{r}" for r in glazingsc_values]
         glazing_scchoice = st.selectbox("Glazing SC", glazing_scoptions)
     with col4:
-        glazing_roptions = ["As Designed"] + [1.00, 1.52, 2.00, 2.50, 3.03, 3.45, 4.00, 4.55, 4.76]
+        glazingU_values = glazingU["U-Value"].dropna().tolist()
+        glazing_roptions = [f"{r:.2f}" for r in glazingU_values if r != "As Designed"]
+        glazing_roptions = ["As Designed"] + sorted(glazing_roptions, key=float)
         glazing_rchoice = st.selectbox("Glazing U-Value", glazing_roptions)
     # --- WWR ---
     with col5:
-        wwr_values = wwrDB["WWR"].iloc[0:].dropna().unique()
-        wwr_values_pct = ["As Designed"] + [f"{v*10}%" for v in wwr_values if v != 0]
-        wwr_choice = st.selectbox("WWR", wwr_values_pct)
+        wwr_values = wwrDB["WWR_Percentage"].dropna().tolist()
+        wwr_values_pct = ["As Designed"] + [f"{v*100:.0f}%" for v in wwr_values]
+        wwr_choice = st.selectbox("WWR (%)", wwr_values_pct)
     # --- Light ---
     with col6:
-        light_values = lightDB["Percent"].iloc[0:].dropna().unique()
-        light_values_pct = ["As Designed"] + [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        light_values = lightDB["Light"].iloc[0:].dropna().unique()
+        light_values_pct = [f"{r}" for r in light_values]
         light_choice = st.selectbox("Lighting (W/ft²)", light_values_pct)
     # --- Equip ---
     with col7:
-        equip_values = equipDB["Percent"].iloc[0:].dropna().unique()
-        equip_values_pct = ["As Designed"] + [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
+        equip_values = equipDB["Equip"].iloc[0:].dropna().unique()
+        equip_values_pct = [f"{r}" for r in equip_values]
         equip_choice = st.selectbox("Equipment (W/ft²)", equip_values_pct)
 
-    # --- Note ---
-    # st.markdown("""**Note:** *Options in Glazings are coded as: <b>GlazingType, U-Value, Shading Coefficient, Lighting-Transmittence</b>.*""",unsafe_allow_html=True)
-    # --- Convert selections to numeric codes ---
     def get_index(choice, options):
         """Return numeric code (0 for 'As Designed', else 1, 2, ...)"""
         return options.index(choice)
@@ -5497,18 +5611,18 @@ if st.session_state.script_choice == "tool2":
             )
 
             figA.update_layout(
-                    legend=dict(
-                        title_text="",           # no legend title
-                        orientation="h",          # horizontal legend
-                        yanchor="bottom",
-                        y=-0.4,                   # below chart
-                        xanchor="center",
-                        x=0.5,
-                        font=dict(size=12)
-                    ),
-                    xaxis_tickangle=-45,
-                    margin=dict(t=20, b=80)
-                )
+                legend=dict(
+                    title_text="",           # no legend title
+                    orientation="h",         # horizontal legend
+                    yanchor="bottom",
+                    y=-0.4,                  # below chart
+                    xanchor="center",
+                    x=0.5,
+                    font=dict(size=12)
+                ),
+                xaxis_tickangle=-45,
+                margin=dict(t=20, b=80)
+            )
             
             
             # --- Chart 2: Stacked Bar Chart ---

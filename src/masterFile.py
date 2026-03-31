@@ -576,7 +576,9 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
             summary_data = pd.read_csv(summary)
             lsc_data = pd.read_csv(lscfile)
             bepu_data = pd.read_csv(bepufile)
+            l = []
             sva_data = pd.read_csv(svafile)
+            l.append(sva_data)
             pse_data = pd.read_csv(psefile)
             lvc_data = pd.read_csv(lvcfile)
             lsc_loss_data = pd.read_csv(lscfile_loss)
@@ -683,6 +685,8 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
                     BGArea = BGArea + lvb_data['AREA(SQFT)'][ele]
             
             # if areaCond is None or areaUncond is None or agarea is None or bgarea is None:
+            # AGArea = summary_data.loc[summary_data['AZIMUTH'] == 'ALL WALLS', 'WALL(AREA)(SQFT)'].values[0]
+            # BGArea = summary_data.loc[summary_data['AZIMUTH'] == 'UNDERGRND', 'WALL(AREA)(SQFT)'].values[0]
             FTAbove.append(AGArea)
             FTBelow.append(BGArea)
             conditioned1 = lvb_data.loc[lvb_data['TYPE'] == 'CONDITIONED', 'Areas'].sum()
@@ -750,6 +754,34 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
                                 'SW-Window-U-Value(BTU/HR-SQFT-F)', 'ROOF-Window-U-Value(BTU/HR-SQFT-F)', 'ALL WALLS-Window-U-Value(BTU/HR-SQFT-F)', 'WALLS+ROOFS-Window-U-Value(BTU/HR-SQFT-F)', 'UNDERGRND-Window-U-Value(BTU/HR-SQFT-F)', 'BUILDING-Window-U-Value(BTU/HR-SQFT-F)']
             windowU = pd.concat([windowU, windowU_temp], ignore_index=True)
 
+    # st.write(l[0])
+    def assign_ashrae(row):
+        sys = row["SYSTEM_TYPE"]
+        heat_eir = row["HEATING_EIR(BTU/BTU)"]
+        cool_eir = row["COOLING_EIR(BTU/BTU)"]
+
+        if sys == "PTAC":
+            return "Sys1" if heat_eir == 0 else "Sys2"
+
+        elif sys == "PSZ":
+            return "Sys3" if heat_eir == 0 else "Sys4"
+
+        elif sys == "PVAVS":
+            return "Sys5"
+
+        elif sys == "PIU":
+            return "Sys6" if cool_eir > 0 else "Sys8"
+
+        elif sys == "VAVS":
+            return "Sys7" if cool_eir == 0 else "Unknown"
+
+        return "Unknown"
+    l[0]["ASHRAE_SYSTEM_TYPE"] = l[0].apply(assign_ashrae, axis=1)
+    # grouped = l[0].groupby("ASHRAE_SYSTEM_TYPE")["COOLING_CAPACITY(KBTU/HR)"].sum()
+    # primary_system = grouped.idxmax()
+    # max_value = grouped.max()
+    # st.write(primary_system)
+    # st.write(max_value)
     print (f"\n Generating combined report *********")
     # 🔒 HARD ALIGN combined_data to FTAbove length
     combined_data = combined_data.iloc[:len(FTAbove)].copy()

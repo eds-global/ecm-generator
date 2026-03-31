@@ -1,9 +1,8 @@
-
 import pandas as pd
 import re
 
 ######################################################
-##################  Glazing R-Value ##################
+##################  Glazing U-Value ##################
 ######################################################
 
 def insert_glass_UVal(inp_data, row_num):
@@ -13,7 +12,7 @@ def insert_glass_UVal(inp_data, row_num):
     start_marker = "Glass Types"
     end_marker = "Window Layers"
 
-    df = pd.read_excel("database/AllData.xlsx", sheet_name="GlazedR")
+    df = pd.read_excel("database/final_Parameter_DB.xlsx", sheet_name="GlazingR")
 
     if "U-Value" not in df.columns:
         raise ValueError("U-Value column not found")
@@ -212,7 +211,7 @@ def insert_glass_types_multiple_outputs(inp_data, row_glaze):
     start_marker = "Glass Types"
     end_marker = "Window Layers"
 
-    df = pd.read_excel("database/AllData.xlsx", sheet_name="Glazing")
+    df = pd.read_excel("database/final_Parameter_DB.xlsx", sheet_name="GlazingSC")
 
     if "SC" not in df.columns:
         raise ValueError("SC column not found")

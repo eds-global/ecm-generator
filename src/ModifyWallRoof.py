@@ -1,7 +1,315 @@
-import os
-import pandas as pd
 import re
 import streamlit as st
+import pandas as pd
+
+def modify_roof(inp_content, row_num):
+
+    if isinstance(inp_content, list):
+        inp_content = "".join(inp_content)
+
+    if row_num == 0:
+        return inp_content
+
+    db_path = "database/final_Parameter_DB.xlsx"
+
+    df = pd.read_excel(db_path, sheet_name="Wall_Assembly")
+    df_thick = pd.read_excel(db_path, sheet_name="Wall_Layers_Thickness")
+
+    # -------------------------------
+    # GET MATERIAL FROM DB
+    # -------------------------------
+    def get_material(mat_name):
+        row = df[df["Material"] == mat_name].iloc[0]
+        return {
+            "thickness": float(row["Thickness(ft)"]),
+            "conductivity": float(row["Conductivity"]),
+            "density": float(row["Density"]),
+            "specific_heat": float(row["SpecificHeat"])
+        }
+
+    # -------------------------------
+    # XPS FROM THICKNESS SHEET
+    # -------------------------------
+    xps_row = df_thick.iloc[row_num]
+
+    xps = {
+        "thickness": float(xps_row["Thickness(ft)"]),
+        "conductivity": float(xps_row["Conductivity"]),
+        "density": float(xps_row["Density"]),
+        "specific_heat": float(xps_row["SpecificHeat"])
+    }
+
+    # -------------------------------
+    # DEFINE ROOF TYPE
+    # -------------------------------
+    if row_num < 13:
+        # HIGH DENSITY ROOF
+        cp = get_material("CP")
+        brick = get_material("Brick")
+        concrete = get_material("Concrete")
+
+        materials_order = ["CP", "XPS", "Brick", "Concrete", "CP"]
+        thickness_list = [
+            cp["thickness"],
+            xps["thickness"],
+            brick["thickness"],
+            concrete["thickness"],
+            cp["thickness"]
+        ]
+
+        material_dict = {
+            "CP": cp,
+            "Brick": brick,
+            "Concrete": concrete,
+            "XPS": xps
+        }
+
+    else:
+        # LOW DENSITY ROOF
+        metal = get_material("MetalDeck")
+
+        materials_order = ["MetalDeck", "XPS"]
+        thickness_list = [
+            metal["thickness"],
+            xps["thickness"]
+        ]
+
+        material_dict = {
+            "MetalDeck": metal,
+            "XPS": xps
+        }
+
+    # -------------------------------
+    # MATERIAL BLOCK (UNIQUE)
+    # -------------------------------
+    material_block = ""
+
+    for mat, p in material_dict.items():
+        material_block += f'''
+"{mat}" = MATERIAL
+  TYPE            = PROPERTIES
+  THICKNESS       = {p["thickness"]:.6f}
+  CONDUCTIVITY    = {p["conductivity"]:.6f}
+  DENSITY         = {p["density"]:.6f}
+  SPECIFIC-HEAT   = {p["specific_heat"]:.6f}
+  ..
+\n'''
+
+    # -------------------------------
+    # LAYERS BLOCK
+    # -------------------------------
+    material_str = ", ".join([f'"{m}"' for m in materials_order])
+    thickness_str = ", ".join([f"{t:.6f}" for t in thickness_list])
+
+    layer_block = f'''
+"AWESIM_ROOF_LYR" = LAYERS
+  MATERIAL       = ({material_str})
+  THICKNESS      = ({thickness_str})
+  ..
+\n'''
+
+    # -------------------------------
+    # CONSTRUCTION BLOCK
+    # -------------------------------
+    construction_block = '''
+"AWESIM_ROOF_CONST" = CONSTRUCTION
+  TYPE           = LAYERS
+  LAYERS         = "AWESIM_ROOF_LYR"
+  ..
+\n
+'''
+
+    # -------------------------------
+    # INSERT INTO INP
+    # -------------------------------
+    start_marker = "Materials / Layers / Constructions"
+    end_marker = "= LAYERS"
+
+    start_index = inp_content.find(start_marker)
+    end_index = inp_content.find(end_marker, start_index)
+    end_index = inp_content.rfind("\n", start_index, end_index)
+
+    updated_inp = (
+        inp_content[:end_index]
+        + "\n\n"
+        + material_block
+        + layer_block
+        + construction_block
+        + inp_content[end_index:]
+    )
+
+    # -------------------------------
+    # UPDATE ROOF (TOP ONLY)
+    # -------------------------------
+    def replace_roof(match):
+        block = match.group(0)
+
+        if re.search(r'\bLOCATION\s*=\s*TOP\b', block, re.IGNORECASE):
+            block = re.sub(
+                r'(CONSTRUCTION\s*=\s*)"[^"]+"',
+                r'\1"AWESIM_ROOF_CONST"',
+                block,
+                flags=re.IGNORECASE
+            )
+        return block
+
+    updated_inp = re.sub(
+        r'(?im)^\s*(".*?")\s*=\s*EXTERIOR-WALL\b[\s\S]*?^\s*\.\.',
+        replace_roof,
+        updated_inp
+    )
+
+    return updated_inp
+
+def modify_wall(inp_content, row_num):
+
+    if isinstance(inp_content, list):
+        inp_content = "".join(inp_content)
+
+    if row_num == 0:
+        return inp_content
+
+    db_path = "database/final_Parameter_DB.xlsx"
+
+    df = pd.read_excel(db_path, sheet_name="Wall_Assembly")
+    df_thick = pd.read_excel(db_path, sheet_name="Wall_Layers_Thickness")
+
+    # -------------------------------
+    # GET MATERIAL PROPERTIES
+    # -------------------------------
+    def get_material(mat_name):
+        row = df[df["Material"] == mat_name].iloc[0]
+        return {
+            "thickness": float(row["Thickness(ft)"]),
+            "conductivity": float(row["Conductivity"]),
+            "density": float(row["Density"]),
+            "specific_heat": float(row["SpecificHeat"])
+        }
+
+    # -------------------------------
+    # XPS FROM THICKNESS SHEET
+    # -------------------------------
+    xps_row = df_thick.iloc[row_num]
+
+    xps = {
+        "thickness": float(xps_row["Thickness(ft)"]),
+        "conductivity": float(xps_row["Conductivity"]),
+        "density": float(xps_row["Density"]),
+        "specific_heat": float(xps_row["SpecificHeat"])
+    }
+
+    # -------------------------------
+    # DEFINE WALL TYPE
+    # -------------------------------
+    if row_num < 13:
+        # HIGH DENSITY
+        cp = get_material("CP")
+        sbb = get_material("SBB")
+
+        materials_order = ["CP", "XPS", "SBB", "CP"]
+        thickness_list = [cp["thickness"], xps["thickness"], sbb["thickness"], cp["thickness"]]
+
+        material_dict = {
+            "CP": cp,
+            "SBB": sbb,
+            "XPS": xps
+        }
+
+    else:
+        # LOW DENSITY
+        cb = get_material("CB")
+        gyp = get_material("GYP")
+
+        materials_order = ["CB", "XPS", "GYP"]
+        thickness_list = [cb["thickness"], xps["thickness"], gyp["thickness"]]
+
+        material_dict = {
+            "CB": cb,
+            "GYP": gyp,
+            "XPS": xps
+        }
+
+    # -------------------------------
+    # MATERIAL BLOCK (UNIQUE)
+    # -------------------------------
+    material_block = ""
+
+    for mat, p in material_dict.items():
+        material_block += f'''
+"{mat}" = MATERIAL
+  TYPE            = PROPERTIES
+  THICKNESS       = {p["thickness"]:.6f}
+  CONDUCTIVITY    = {p["conductivity"]:.6f}
+  DENSITY         = {p["density"]:.6f}
+  SPECIFIC-HEAT   = {p["specific_heat"]:.6f}
+  ..
+\n'''
+
+    # -------------------------------
+    # LAYERS BLOCK
+    # -------------------------------
+    material_str = ", ".join([f'"{m}"' for m in materials_order])
+    thickness_str = ", ".join([f"{t:.6f}" for t in thickness_list])
+
+    layer_block = f'''
+"AWESIM_WALL_LYR" = LAYERS
+  MATERIAL       = ({material_str})
+  THICKNESS      = ({thickness_str})
+  ..
+\n'''
+
+    # -------------------------------
+    # CONSTRUCTION BLOCK
+    # -------------------------------
+    construction_block = '''
+"AWESIM_WALL_CONST" = CONSTRUCTION
+  TYPE           = LAYERS
+  LAYERS         = "AWESIM_WALL_LYR"
+  ..
+\n
+'''
+
+    # -------------------------------
+    # INSERT INTO INP
+    # -------------------------------
+    start_marker = "Materials / Layers / Constructions"
+    end_marker = "= LAYERS"
+
+    start_index = inp_content.find(start_marker)
+    end_index = inp_content.find(end_marker, start_index)
+    end_index = inp_content.rfind("\n", start_index, end_index)
+
+    updated_inp = (
+        inp_content[:end_index]
+        + "\n\n"
+        + material_block
+        + layer_block
+        + construction_block
+        + inp_content[end_index:]
+    )
+
+    # -------------------------------
+    # UPDATE WALLS
+    # -------------------------------
+    def replace_wall(match):
+        block = match.group(0)
+
+        if not re.search(r'\bLOCATION\s*=\s*(TOP|BOTTOM)\b', block, re.IGNORECASE):
+            block = re.sub(
+                r'(CONSTRUCTION\s*=\s*)"[^"]+"',
+                r'\1"AWESIM_WALL_CONST"',
+                block,
+                flags=re.IGNORECASE
+            )
+        return block
+
+    updated_inp = re.sub(
+        r'(?im)^\s*(".*?")\s*=\s*EXTERIOR-WALL\b[\s\S]*?^\s*\.\.',
+        replace_wall,
+        updated_inp
+    )
+
+    return updated_inp
 
 def count_exterior_walls(inp_file):
     start_marker = "Floors / Spaces / Walls / Windows / Doors"
@@ -92,7 +400,7 @@ def fix_walls(inp_content, row_num):
         xps_material = (
             '"XPS_Wall"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
-            f'  THICKNESS       = {rvalue:.3f}\n'
+            f'  THICKNESS       = {rvalue:.6f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
             '  DENSITY         = 2.18\n'
             '  SPECIFIC-HEAT   = 0.29\n'
@@ -118,7 +426,7 @@ def fix_walls(inp_content, row_num):
         layer_block = (
             '"AWESIM_WALL_LYR"  = LAYERS\n'
             '  MATERIAL       = ("CP", "XPS_Wall", "Brick", "CP")\n'
-            '  THICKNESS      = (0.0656, {:.3f}, 0.754, 0.0656)\n'
+            '  THICKNESS      = (0.0656, {:.6f}, 0.754, 0.0656)\n'
             '  ..\n\n'
         ).format(rvalue)
 
@@ -199,7 +507,7 @@ def fix_walls(inp_content, row_num):
         xps_material = (
             '"XPS_Wall"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
-            f'  THICKNESS       = {rvalue:.4f}\n'
+            f'  THICKNESS       = {rvalue:.7f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
             '  DENSITY         = 2.18\n'
             '  SPECIFIC-HEAT   = 0.29\n'
@@ -224,7 +532,7 @@ def fix_walls(inp_content, row_num):
         layer_block = (
             '"AWESIM_WALL_LYR"  = LAYERS\n'
             '  MATERIAL       = ("CB", "XPS_Wall", "GYP")\n'
-            '  THICKNESS      = (0.06562, {:.4f}, 0.04921)\n'
+            '  THICKNESS      = (0.06562, {:.7f}, 0.04921)\n'
             '  ..\n\n'
         ).format(rvalue)
 
@@ -319,7 +627,7 @@ def fix_roofs(inp_content, row_num):
         xps_material = (
             '"XPS_Roof"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
-            f'  THICKNESS       = {rvalue:.3f}\n'
+            f'  THICKNESS       = {rvalue:.7f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
             '  DENSITY         = 2.18\n'
             '  SPECIFIC-HEAT   = 0.29\n'
@@ -355,7 +663,7 @@ def fix_roofs(inp_content, row_num):
         layer_block = (
             '"AWESIM_ROOF_LYR"  = LAYERS\n'
             '  MATERIAL       = ("CP", "XPS_Roof", "Brick", "Concrete", "CP")\n'
-            '  THICKNESS      = (0.0656, {:.3f}, 0.25, 0.492, 0.0656)\n'
+            '  THICKNESS      = (0.0656, {:.7f}, 0.25, 0.492, 0.0656)\n'
             '  ..\n\n'
         ).format(rvalue)
 
@@ -439,7 +747,7 @@ def fix_roofs(inp_content, row_num):
         xps_material = (
             '"XPS_Roof"  = MATERIAL\n'
             '  TYPE            = PROPERTIES\n'
-            f'  THICKNESS       = {rvalue:.3f}\n'
+            f'  THICKNESS       = {rvalue:.7f}\n'
             '  CONDUCTIVITY    = 0.0161\n'
             '  DENSITY         = 2.18\n'
             '  SPECIFIC-HEAT   = 0.29\n'
@@ -452,7 +760,7 @@ def fix_roofs(inp_content, row_num):
         layer_block = (
             '"AWESIM_ROOF_LYR"  = LAYERS\n'
             '  MATERIAL       = ("MetDeck", "XPS_Roof")\n'
-            '  THICKNESS      = (0.021, {:.3f})\n'
+            '  THICKNESS      = (0.021, {:.7f})\n'
             '  ..\n\n'
         ).format(rvalue)
         # -------------------------------

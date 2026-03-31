@@ -8,12 +8,12 @@ def updateEquipment(inp_data_str, equip_idx):
 
     # --- Load EquipmentPower-Improvement database ---
     try:
-        database = pd.read_excel("database/ML_ScaleUp_v02.xlsx", sheet_name='EquipmentPower-Improvement')
-        improvement = database['Improvement'].iloc[equip_idx]
+        database = pd.read_excel("database/final_Parameter_DB.xlsx", sheet_name='Equipment')
+        improvement = database['Equip'].iloc[equip_idx]
     except FileNotFoundError:
-        raise FileNotFoundError("Excel file not found: database/ML_ScaleUp_v02.xlsx")
+        raise FileNotFoundError("Excel file not found: database/final_Parameter_DB.xlsx")
     except ValueError:
-        raise ValueError("Sheet 'EquipmentPower-Improvement' not found in the Excel file.")
+        raise ValueError("Sheet 'Equipment' not found in the Excel file.")
     except IndexError:
         raise IndexError(f"Invalid index provided: {equip_idx}. Total rows: {len(database)}")
 

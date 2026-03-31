@@ -7,7 +7,7 @@ def updateLPD(inp_data, light):
     for i, line in enumerate(inp_data):
         if "DAYLIGHTING" in line and "= YES" in line:
             inp_data[i] = re.sub(r'=\s*YES', '= NO', line)
-
+    # light -= 1
     if light == 0:
         return ''.join(inp_data)
 
@@ -15,14 +15,14 @@ def updateLPD(inp_data, light):
     end_marker = "$ --"
 
     try:
-        database = pd.read_excel("database/ML_ScaleUp_v02.xlsx", sheet_name='LightingPower-Improvement')
-        improvement = database['Improvement'].iloc[light]
+        database = pd.read_excel("database/final_Parameter_DB.xlsx", sheet_name='Lighting')
+        improvement = database['Light'].iloc[light]
     except FileNotFoundError:
-        raise FileNotFoundError("Excel file not found: database/ML_ScaleUp_v02.xlsx")
+        raise FileNotFoundError("Excel file not found: database/final_Parameter_DB.xlsx")
     except ValueError:
-        raise ValueError("Sheet 'LightingPower-Improvement' not found in the Excel file.")
+        raise ValueError("Sheet 'Lighting' not found in the Excel file.")
     except IndexError:
-        raise IndexError(f"Invalid 'light' index provided: {light}. Total rows: {len(database)}")
+        raise IndexError(f"Invalid 'light' index provided: {light - 1}. Total rows: {len(database)}")
 
     # --- Parse Global Parameters ---
     global_params = {}
