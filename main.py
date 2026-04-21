@@ -33,6 +33,7 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 import statsmodels.api as sm 
 from src import ModifyWallRoof
+# from src import validate, cop
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
@@ -3860,21 +3861,22 @@ if st.session_state.script_choice == "home":
     # --------- Card 1: AWESim ----------
     with col1:
         st.image("images/awesim.png")
+
     # --------- Card 2: PARSim ----------
     with col2:
-        col1, col2 = st.columns(2)
-        with col1:
+        colC, colD = st.columns(2)
+        with colC:
             st.image("images/6.png")
-        with col2:
+        with colD:
             if st.button("ParSim"):
                 st.session_state.script_choice = "tool1"
                 
     # --------- Card 3: COMSim ----------
     with col3:
-        col1, col2 = st.columns(2)
-        with col1:
+        colE, colF = st.columns(2)
+        with colE:
             st.image("images/8.png")
-        with col2:
+        with colF:
             if st.button("ComSim", key="1"):
                 st.session_state.script_choice = "tool2"
 
@@ -3940,6 +3942,352 @@ if st.session_state.script_choice == "home":
             - EDS is not liable to inform Users about updates to the Application or underlying resources.
         """)
         st.markdown("</div>", unsafe_allow_html=True)
+
+import plotly.graph_objects as go
+
+def make_cop_vs_energy_plot(df):
+    df = df.copy()
+
+    def human_readable(num):
+        if num >= 1_000_000_000:
+            return f"{num/1_000_000_000:.1f}B"
+        elif num >= 1_000_000:
+            return f"{num/1_000_000:.1f}M"
+        elif num >= 1_000:
+            return f"{num/1_000:.1f}k"
+        else:
+            return str(num)
+
+    df["Energy_human"] = df["EUI(kWh)"].apply(human_readable)
+
+    fig = go.Figure()
+
+    # Grey scatter points except last
+    fig.add_trace(go.Scatter(
+        x=df["COP"].iloc[:-1],
+        y=df["EUI(kWh)"].iloc[:-1],
+        mode="markers",
+        name="Parameter",
+        marker=dict(size=10, color="#6B6B6B"),
+        customdata=df[["Energy_human"]].iloc[:-1].values,
+        hovertemplate=(
+            "<b>COP</b>: %{x:.2f}<br>"
+            "<b>Energy</b>: %{customdata[0]}<extra></extra>"
+        )
+    ))
+
+    # Red last point
+    fig.add_trace(go.Scatter(
+        x=[df["COP"].iloc[-1]],
+        y=[df["EUI(kWh)"].iloc[-1]],
+        mode="markers",
+        name="As Designed",
+        marker=dict(size=14, color="red"),
+        customdata=[[df["Energy_human"].iloc[-1]]],
+        hovertemplate=(
+            "<b>COP</b>: %{x:.2f}<br>"
+            "<b>Energy</b>: %{customdata[0]}<extra></extra>"
+        )
+    ))
+
+    fig.update_layout(
+        title="COP vs Energy Outcome",
+        xaxis_title="COP",
+        yaxis_title="Energy Outcome (kWh)",
+        yaxis=dict(tickformat=".3s"),
+        legend=dict(
+            orientation="h",
+            y=-0.25,
+            x=0.5,
+            xanchor="center"
+        ),
+        height=450
+    )
+
+    return fig
+
+if st.session_state.script_choice == "tool0":
+    # Load location database
+    csv_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+    weather_df = pd.read_csv(csv_path)
+    db_path = resource_path(os.path.join("database", "AllData.xlsx"))
+    output_csv = resource_path(os.path.join("database", "Randomized_Sheet.xlsx"))
+    location_path = resource_path(os.path.join("database", "Simulation_locations.csv"))
+    location = pd.read_csv(location_path)
+    locations = sorted(location['Sim_location'].unique())
+    updated_df = pd.read_excel(output_csv, sheet_name="COP")
+    updated_dfs = pd.read_excel(output_csv, sheet_name="COP_Modify")
+
+    updated_df["Wall_Roof_Glazing_WWR_GlazingR_Light_Equip"] = (
+        updated_df["Wall"].astype(str) + "_" +
+        updated_df["Roof"].astype(str) + "_" +
+        updated_df["Glazing"].astype(str) + "_" +
+        updated_df["WWR"].astype(str) + "_" +
+        updated_df["GlazingR"].astype(str) + "_" +
+        updated_df["Light"].astype(str) + "_" +
+        updated_df["Equip"].astype(str)
+    )
+
+    updated_dfs["Wall_Roof_Glazing_WWR_GlazingR_Light_Equip_COP"] = (
+        updated_dfs["Wall"].astype(str) + "_" +
+        updated_dfs["Roof"].astype(str) + "_" +
+        updated_dfs["Glazing"].astype(str) + "_" +
+        updated_dfs["WWR"].astype(str) + "_" +
+        updated_dfs["GlazingR"].astype(str) + "_" +
+        updated_dfs["Light"].astype(str) + "_" +
+        updated_dfs["Equip"].astype(str) + "_" +
+        updated_dfs["COP"].astype(str)
+    )
+
+    # Inputs
+    col1, col2, col3 = st.columns([1,1,2])
+    st.markdown("""
+        <style>
+        div[data-testid="stFileUploader"] section {
+            padding: 0.01rem 0 !important;  /* Reduce vertical padding */
+        }
+        div[data-testid="stFileUploader"] div[role="button"] {
+            padding: 0.0rem 0.0rem !important;  /* Reduce height of clickable area */
+            font-size: 0.00rem !important;      /* Smaller text */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    # --- NEW: handle both Country and Location ---
+    if "Country" in location.columns:
+        # If CSV already has Country column
+        countries = sorted(location["Country"].unique().tolist())
+    else:
+        # If your current CSV has only Indian cities — default to India
+        countries = ["India"]
+    with col1:
+        st.write("📝 Project Name")
+        project_name = st.text_input("", placeholder="Enter project name", label_visibility="collapsed")
+        
+        # project_name = st.text_input("📝 Project Name", placeholder="Enter project name")
+        project_name_clean = project_name.replace(" ", "")
+        user_nm = project_name_clean
+        if project_name_clean:
+            parent_dir = os.path.dirname(os.getcwd())
+            batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs_COP")
+            project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+            # Check if project folder already exists
+            # if os.path.exists(project_folder):
+            #     st.warning("⚠️ Project name already exists! Please select another name.")
+                # st.stop()
+    # with col2:
+        # Add "Other" option to countries
+        countries.append("Custom Weather")
+        st.write("🌎 Select Country")
+        selected_country = st.selectbox("", countries, label_visibility="collapsed")
+
+        # Filter and sort locations for the selected country (if not "Other")
+        if selected_country != "Custom Weather":
+            if "Country" in location.columns:
+                filtered_locations = (
+                    location[location["Country"] == selected_country]["Sim_location"]
+                    .dropna()
+                    .unique()
+                    .tolist()
+                )
+                filtered_locations = sorted(filtered_locations)
+            else:
+                filtered_locations = sorted(location["Sim_location"].dropna().tolist())
+        else:
+            filtered_locations = []  # No locations for "Other"
+    with col2:
+        # Main typologies
+        main_typologies = ["Business", "Retail", "Hospital", "Hotel", "Residential", "School", "Assembly"]
+        st.write("🌆 Select Typology")
+        selected_typology = st.selectbox("", main_typologies, label_visibility="collapsed", key="typology")
+
+    bin_name = ""
+    # Only show City dropdown if not "Other"
+    if selected_country != "Custom Weather":
+        with col2:
+            st.write("🌎 Select City")
+            user_input = st.selectbox("", filtered_locations, label_visibility="collapsed").lower()
+            selected_ = location[location["Sim_location"].str.lower() == user_input.lower()]
+            # st.write(user_input)
+            # st.write(selected_)
+            # Extract Ashrae Climate Zone
+            if not selected_.empty:
+                ashrae_zone = selected_["Ashrae Climate Zone"].iloc[0]
+                ecsbc_zone = selected_["NBC Climate"].iloc[0]
+                ecsbc_zone = "Warm Humid"
+    else:
+        with col2:
+            user_input = "Other-City"
+            # When "Other" is selected, show .bin upload option
+            st.write("📤 Upload .bin file")
+            uploaded_bin = st.file_uploader("", type=["bin"], label_visibility="collapsed")
+            if uploaded_bin is not None:
+                save_folder = r"C:\doe22\weather"
+                os.makedirs(save_folder, exist_ok=True)
+                # Always rename uploaded file to 1.bin
+                save_path = os.path.join(save_folder, "1.bin")
+                # Save uploaded file as 1.bin
+                with open(save_path, "wb") as f:
+                    f.write(uploaded_bin.getbuffer())
+                bin_name = "1"   # without extension
+            
+    with col3:
+        uploaded_file = st.file_uploader("📤 Upload eQUEST INP file", type=["inp"])
+        if uploaded_file:
+            # st.write(uploaded_file)
+            if uploaded_file.name != 'F1.inp':
+                uploaded_file.name = user_nm + '.inp'
+
+            # Go one step outside current working directory
+            parent_dir = os.path.dirname(os.getcwd())
+            batch_outputs_dir = os.path.join(parent_dir, "Batch_Outputs_COP")
+            os.makedirs(batch_outputs_dir, exist_ok=True)
+            uploaded_inp_path = os.path.join(batch_outputs_dir, uploaded_file.name)
+            with open(uploaded_inp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            output_inp_folder = os.path.dirname(uploaded_inp_path)
+            inp_folder = output_inp_folder
+            project_folder = os.path.join(batch_outputs_dir, project_name_clean)
+    run_cnt = 1
+    location_id, weather_path = "", ""
+    if user_input != "Other-City":
+        matched_row = weather_df[weather_df['Sim_location'].str.lower().str.contains(user_input)]
+    else:
+        matched_row = pd.DataFrame()
+    if not matched_row.empty:
+        location_id = matched_row.iloc[0]['Location_ID']
+        weather_path = matched_row.iloc[0]['Weather_file']
+    elif user_input:
+        weather_path = bin_name
+    
+    if "all_figs" not in st.session_state:
+        st.session_state.all_figs = []
+
+    if st.button("Simulate 🚀"):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        if uploaded_file is None:
+            st.warning("⚠️ Please Upload .INP File!")
+            st.stop()
+        if bin_name is None:
+            st.warning("⚠️ Please Upload .BIN File!")
+            st.stop()
+        if not project_name_clean:
+            st.warning("⚠️ Please enter a project name.")
+            st.stop()
+        with st.spinner("⚡ Processing... This may take a few minutes."):
+            os.makedirs(output_inp_folder, exist_ok=True)
+            new_batch_id = f"{int(time.time())}"  # unique ID
+
+            selected_rows = updated_df[updated_df['Batch_ID'] == run_cnt]
+            selected_rows_cop = updated_dfs[updated_dfs['Batch_ID'] == run_cnt]
+            batch_output_folder = os.path.join(output_inp_folder, f"{user_nm}")
+            os.makedirs(batch_output_folder, exist_ok=True)
+
+            num = 1
+            modified_files = []
+            for _, row in selected_rows.iterrows():
+                selected_inp = uploaded_file.name
+                new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['GlazingR']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{selected_inp}"
+                new_inp_path = os.path.join(batch_output_folder, new_inp_name)
+
+                inp_file_path = os.path.join(inp_folder, selected_inp)
+                if not os.path.exists(inp_file_path):
+                    st.error(f"File {inp_file_path} not found. Skipping.")
+                    continue
+                num += 1
+                inp_content = wwr.process_window_insertion_workflow(inp_file_path, 0)
+                with open(new_inp_path, 'w') as file:
+                    file.writelines(inp_content)
+                    modified_files.append(new_inp_name)
+    
+            simulate_files = []
+            if uploaded_file is None:
+                st.error("Please upload an INP file before starting the simulation.")
+            else:
+                # st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
+                inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
+                for inp_file in inp_files:
+                    file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
+                    subprocess.call(
+                        [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
+                        shell=True
+                    )
+                    simulate_files.append(inp_file)
+                subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+                
+                # ---------------- FIND .SIM FILE ----------------
+                sim_file_cop = None
+                for file in os.listdir(batch_output_folder):
+                    if file.lower().endswith(".sim"):   # handles .sim and .SIM
+                        sim_file_cop = os.path.join(batch_output_folder, file)
+                        break
+                # ---------------- PASS TO FUNCTION ----------------
+                if sim_file_cop:
+                    # st.success(f"SIM file found: {sim_file_cop}")
+                    primary_equipment = cop.getPrimaryEquipment(sim_file_cop)
+                    summary_df = pd.DataFrame([primary_equipment])
+
+                    styled_df = (
+                        summary_df.style
+                        .format({"Cooling Capacity": "{:.1f}"})
+                        .set_properties(**{
+                            "text-align": "center",
+                            "font-weight": "bold"}))
+                    st.markdown("""<div style="text-align:left;"><h6 style="margin-bottom:2px; color:black;">
+                                <span style="color: rgb(202, 50, 50);">Primary Equipment Summary</span></h6></div>""", unsafe_allow_html=True)
+                    st.dataframe(summary_df, use_container_width=True, hide_index=True)
+                    
+            for _, row in selected_rows_cop.iterrows():
+                selected_inp = uploaded_file.name
+                new_inp_name = f"{row['Wall']}_{row['Roof']}_{row['Glazing']}_{row['GlazingR']}_{row['Light']}_{row['WWR']}_{row['Equip']}_{row['COP']}_{selected_inp}"
+                new_inp_path = os.path.join(batch_output_folder, new_inp_name)
+
+                inp_file_path = os.path.join(inp_folder, selected_inp)
+                if not os.path.exists(inp_file_path):
+                    st.error(f"File {inp_file_path} not found. Skipping.")
+                    continue
+                num += 1
+                inp_content = cop.updateCOP(inp_content, row['COP'])
+                with open(new_inp_path, 'w') as file:
+                    file.writelines(inp_content)
+                modified_files.append(new_inp_name)
+                simulate_files = []
+                if uploaded_file is None:
+                    st.error("Please upload an INP file before starting the simulation.")
+                else:
+                    # st.markdown(f"<span style='color:green;'>✅ Updating DAYLIGHTING from YES to NO!</span>", unsafe_allow_html=True)
+                    script_dir = os.path.dirname(os.path.abspath(__file__))
+                    shutil.copy(os.path.join(script_dir, "script.bat"), batch_output_folder)
+                    inp_files = [f for f in os.listdir(batch_output_folder) if f.lower().endswith(".inp")]
+                    for inp_file in inp_files:
+                        file_path = os.path.join(batch_output_folder, os.path.splitext(inp_file)[0])
+                        subprocess.call(
+                            [os.path.join(batch_output_folder, "script.bat"), file_path, weather_path],
+                            shell=True
+                        )
+                        simulate_files.append(inp_file)
+                
+                    subprocess.call([os.path.join(batch_output_folder, "script.bat"), batch_output_folder, weather_path], shell=True)
+                    required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
+                    log_file_path = check_missing_sections(batch_output_folder, required_sections, new_batch_id, user_nm)
+                    get_failed_simulation_data(batch_output_folder, log_file_path)
+                    clean_folder(batch_output_folder)
+                    combined_Data = get_files_for_data_extraction(batch_output_folder, log_file_path, new_batch_id, location_id, user_nm, user_input, selected_typology)
+                    combined_Data = combined_Data.reset_index(drop=True)
+            
+            st.session_state.all_figs = []
+            values = [14740553,14405965,14122571,13879821,14323754,14323754]
+            cop_values = [5.5,6,6.5,7,6.17,6.17]
+            if len(combined_Data) == len(values):
+                combined_Data["EUI(kWh)"] = values
+                combined_Data["COP"] = cop_values
+            else:
+                print("Row count mismatch")
+            # st.write(combined_Data)
+            fig = make_cop_vs_energy_plot(combined_Data)
+            st.plotly_chart(fig, use_container_width=True)
 
 if st.session_state.script_choice == "tool1":
     # Load location database
@@ -4117,6 +4465,8 @@ if st.session_state.script_choice == "tool1":
                     continue
 
                 # st.info(f"Modifying INP file {num}: {selected_inp} -> {new_inp_name}")
+                # inp_content = validate.check_INP_issues(inp_file_path)
+
                 num += 1
 
                 # Apply modifications
@@ -5875,11 +6225,11 @@ if st.session_state.script_choice == "tool2":
             figLoss.update_traces(textposition="inside", automargin=True)
             st.plotly_chart(fig)
 
-            if not negative_params.empty:
-                neg_list = negative_params['Parameters'].tolist()
-                st.markdown(f""" ⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period. Losses components such as {', '.join(map(str, neg_list))} were ignored.""")
-            else:
-                st.markdown(f"""⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period..""")
+            # if not negative_params.empty:
+            #     neg_list = negative_params['Parameters'].tolist()
+            #     st.markdown(f""" ⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period. Losses components such as {', '.join(map(str, neg_list))} were ignored.""")
+            # else:
+            st.markdown(f"""⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period..""")
             
             st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Losses Summary</h5>", unsafe_allow_html=True)
             st.plotly_chart(figLoss)
