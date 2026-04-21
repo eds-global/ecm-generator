@@ -33,7 +33,7 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 import statsmodels.api as sm 
 from src import ModifyWallRoof
-from src import validate, cop
+# from src import validate, cop
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
