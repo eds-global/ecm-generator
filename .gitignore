@@ -15,6 +15,7 @@ pdf_charts/
 *.erp
 *.lrp
 *.srp
+*.pdf
 
 # Common environment or temp folders
 .env
