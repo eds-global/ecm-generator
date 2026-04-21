@@ -776,7 +776,7 @@ def get_all_calculated_values(user_input, user_nm, typology, inputPath):
             return "Sys7" if cool_eir == 0 else "Unknown"
 
         return "Unknown"
-    l[0]["ASHRAE_SYSTEM_TYPE"] = l[0].apply(assign_ashrae, axis=1)
+    # l[0]["ASHRAE_SYSTEM_TYPE"] = l[0].apply(assign_ashrae, axis=1)
     # grouped = l[0].groupby("ASHRAE_SYSTEM_TYPE")["COOLING_CAPACITY(KBTU/HR)"].sum()
     # primary_system = grouped.idxmax()
     # max_value = grouped.max()
