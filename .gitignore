@@ -7,6 +7,8 @@ __pycache__/
 # Specific file to ignore
 a.py
 
+pdf_charts/
+
 # Custom extensions to ignore
 *.lin
 *.sin
