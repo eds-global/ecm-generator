@@ -4519,38 +4519,6 @@ if st.session_state.script_choice == "tool1":
                 combined_Data = combined_Data.reset_index(drop=True)
                 
         st.session_state.all_figs = []   # 🔥 MUST RESET HERE
-        # exportCSV = resource_path(os.path.join("2026-03-18T10-43_export.csv"))
-        # combined_Data = pd.read_csv(exportCSV)
-        df_num = combined_Data[
-            combined_Data['FileName'].str.contains(r'_([1-4])Rajeev1$') |
-            (combined_Data['FileName'] == '0_0_0_0_0_0_0_Rajeev1')
-        ]
-
-        # Bring base case to top
-        df_num = pd.concat([
-            df_num[df_num['FileName'] == '0_0_0_0_0_0_0_Rajeev1'],
-            df_num[df_num['FileName'] != '0_0_0_0_0_0_0_Rajeev1']
-        ])
-        # st.write(df_num)
-        # st.write(combined_Data)
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-        # fig = px.scatter(
-        #     df_num,
-        #     x="COP",
-        #     y="Energy_Outcome(KWH)",
-        #     title="COP vs Energy Outcome",
-        #     labels={
-        #         "COP": "Coefficient of Performance",
-        #         "Energy_Outcome(KWH)": "Energy Outcome (kWh)"
-        #     }
-        # )
-
-        # fig.update_layout(
-        #     xaxis_title="COP",
-        #     yaxis_title="Energy Outcome (kWh)"
-        # )
-
         # fig.show()
         ashrae_zone = "Hot Humid"
         # combined_Data["Equip(W/Sqft)"] = combined_Data["Equipment-Total(W)"] / combined_Data["Floor-Total-Above-Grade(SQFT)"]
@@ -5480,7 +5448,7 @@ if st.session_state.script_choice == "tool2":
                 num1 += 1
                 # st.write(new_inp_name1)
                 # st.write(new_inp_path)
-
+                
                 # Apply modifications
                 inp_content = wwr.process_window_insertion_workflow(inp_file_path1, row["WWR"])
                 # inp_content = orient.updateOrientation(inp_content, row["Orient"])
@@ -5517,777 +5485,786 @@ if st.session_state.script_choice == "tool2":
             if uploaded_file1 is None:
                 st.error("Please upload an INP file before starting the simulation.")
             else:
-                script_dir1 = os.path.dirname(os.path.abspath(__file__))
-                shutil.copy(os.path.join(script_dir1, "script.bat"), batch_output_folder1)
-                inp_files1 = [f for f in os.listdir(batch_output_folder1) if f.lower().endswith(".inp")]
-                # st.write(inp_files1)
-                for inp_file in inp_files1:
-                    file_path1 = os.path.join(batch_output_folder1, os.path.splitext(inp_file)[0])
-                    subprocess.call([os.path.join(batch_output_folder1, "script.bat"), file_path1, weather_path1], shell=True)
-                    simulate_files1.append(inp_file)
-                # st.write(simulate_files1)
-            
-                subprocess.call([os.path.join(batch_output_folder1, "script.bat"), batch_output_folder1, weather_path1], shell=True)
-                required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
-                log_file_path1 = check_missing_sections(batch_output_folder1, required_sections, new_batch_id, user_nm1)
-                get_failed_simulation_data(batch_output_folder1, log_file_path1)
-                clean_folder(batch_output_folder1)
-                combined_Data1 = get_files_for_data_extraction(batch_output_folder1, log_file_path1, new_batch_id, location_id1, user_nm1, user_input1, selected_typology1)
-                combined_Data1 = combined_Data1.reset_index(drop=True)
-
-            # exportCSV = resource_path(os.path.join("2026-03-09T12-54_export.csv"))
-            # combined_Data1 = pd.read_csv(exportCSV)
-            # st.write(combined_Data1)
-
-            ############################################
-            ############################################
-            ############################################
-            row0 = combined_Data1.iloc[0]
-            row1 = combined_Data1.iloc[1]
-            wwr_0 = (row0.get("WWR", 0))
-            wwr_1 = (row1.get("WWR", 0))
-            shgc_0 = (row0.get("SHGC", 0))
-            shgc_1 = (row1.get("SHGC", 0))
-            r_wall_0 = (row0.get("R-VAL-W", 0))
-            r_wall_1 = (row1.get("R-VAL-W", 0))
-            r_roof_0 = (row0.get("R-VAL-R", 0))
-            r_roof_1 = (row1.get("R-VAL-R", 0))
-            r_wind_0 = (row0.get("R-VAL-Wind", 0))
-            r_wind_1 = (row1.get("R-VAL-Wind", 0))
-            ener_0 = (row0.get("Energy_Outcome(KWH)", 0))
-            ener_1 = (row1.get("Energy_Outcome(KWH)", 0))
-            light_0 = (row0.get("Light(W/Sqft)", 0))
-            light_1 = (row1.get("Light(W/Sqft)", 0))
-            equip_0 = (row0.get("Equip(W/Sqft)", 0))
-            equip_1 = (row1.get("Equip(W/Sqft)", 0))
-
-            st.markdown("""
-            <style>
-            .analysis-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 10px;
-            }
-
-            .card {
-                position: relative;
-                border-radius: 10px;
-                padding: 8px;
-                min-height: 70px;
-                background: white;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                cursor: help;
-                transition: all 0.25s ease;
-            }
-
-            .card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            }
-
-            .card::before {
-                content: "";
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 4px;
-                height: 100%;
+                try:
+                    script_dir1 = os.path.dirname(os.path.abspath(__file__))
+                    shutil.copy(os.path.join(script_dir1, "script.bat"), batch_output_folder1)
+                    inp_files1 = [f for f in os.listdir(batch_output_folder1) if f.lower().endswith(".inp")]
+                    # st.write(inp_files1)
+                    for inp_file in inp_files1:
+                        file_path1 = os.path.join(batch_output_folder1, os.path.splitext(inp_file)[0])
+                        subprocess.call([os.path.join(batch_output_folder1, "script.bat"), file_path1, weather_path1], shell=True)
+                        simulate_files1.append(inp_file)
+                    # st.write(simulate_files1)
                 
-                border-radius: 10px 0 0 10px;
-            }
+                    subprocess.call([os.path.join(batch_output_folder1, "script.bat"), batch_output_folder1, weather_path1], shell=True)
+                    required_sections = ['BEPS', 'BEPU', 'LS-C', 'LV-B', 'LV-D', 'PS-E', 'SV-A']
+                    log_file_path1 = check_missing_sections(batch_output_folder1, required_sections, new_batch_id, user_nm1)
+                    get_failed_simulation_data(batch_output_folder1, log_file_path1)
+                    clean_folder(batch_output_folder1)
+                    combined_Data1 = get_files_for_data_extraction(batch_output_folder1, log_file_path1, new_batch_id, location_id1, user_nm1, user_input1, selected_typology1)
+                    combined_Data1 = combined_Data1.reset_index(drop=True)
 
-            .info-icon {
-                position: absolute;
-                top: 6px;
-                right: 8px;
-                font-size: 12px;
-                color: #6b7280;
-            }
+                    # exportCSV = resource_path(os.path.join("2026-03-09T12-54_export.csv"))
+                    # combined_Data1 = pd.read_csv(exportCSV)
+                    # st.write(combined_Data1)
 
-            .card .tooltip {
-                visibility: hidden;
-                opacity: 0;
-                width: 220px;
-                background-color: #111827;
-                color: #ffffff;
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 12px;
-                line-height: 1.4;
-                position: absolute;
-                bottom: 115%;
-                left: 50%;
-                transform: translateX(-50%);
-                transition: opacity 0.2s ease-in-out;
-                z-index: 100;
-            }
+                    ############################################
+                    ############################################
+                    ############################################
+                    row0 = combined_Data1.iloc[0]
+                    row1 = combined_Data1.iloc[1]
+                    wwr_0 = (row0.get("WWR", 0))
+                    wwr_1 = (row1.get("WWR", 0))
+                    shgc_0 = (row0.get("SHGC", 0))
+                    shgc_1 = (row1.get("SHGC", 0))
+                    r_wall_0 = (row0.get("R-VAL-W", 0))
+                    r_wall_1 = (row1.get("R-VAL-W", 0))
+                    r_roof_0 = (row0.get("R-VAL-R", 0))
+                    r_roof_1 = (row1.get("R-VAL-R", 0))
+                    r_wind_0 = (row0.get("R-VAL-Wind", 0))
+                    r_wind_1 = (row1.get("R-VAL-Wind", 0))
+                    ener_0 = (row0.get("Energy_Outcome(KWH)", 0))
+                    ener_1 = (row1.get("Energy_Outcome(KWH)", 0))
+                    light_0 = (row0.get("Light(W/Sqft)", 0))
+                    light_1 = (row1.get("Light(W/Sqft)", 0))
+                    equip_0 = (row0.get("Equip(W/Sqft)", 0))
+                    equip_1 = (row1.get("Equip(W/Sqft)", 0))
 
-            .card:hover .tooltip {
-                visibility: visible;
-                opacity: 1;
-            }
+                    st.markdown("""
+                    <style>
+                    .analysis-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                        gap: 10px;
+                    }
 
-            .card small {
-                font-size: 0.7rem;
-                font-weight: 500;
-                color: #000;
-            }
+                    .card {
+                        position: relative;
+                        border-radius: 10px;
+                        padding: 8px;
+                        min-height: 70px;
+                        background: white;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        text-align: center;
+                        cursor: help;
+                        transition: all 0.25s ease;
+                    }
 
-            .card h6 {
-                margin-top: 6px;
-                font-size: 1.05rem;
-                font-weight: 600;
-                color: #0f172a;
-            }
+                    .card:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+                    }
 
-            .section-title {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #dc2626;
-                margin: 18px 0 10px 0;
-            }
-            .card {
-                position: relative;
-            }
+                    .card::before {
+                        content: "";
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 4px;
+                        height: 100%;
+                        
+                        border-radius: 10px 0 0 10px;
+                    }
 
-            .info-icon {
-                font-size: 12px;
-                cursor: pointer;
-                color: #6b7280; /* subtle gray */
-            }
+                    .info-icon {
+                        position: absolute;
+                        top: 6px;
+                        right: 8px;
+                        font-size: 12px;
+                        color: #6b7280;
+                    }
 
-            .tooltip {
-                position: absolute;
-                bottom: 120%;
-                left: 50%;
-                transform: translateX(-50%) translateY(6px);
-                background: #111827;   /* dark slate */
-                color: #f9fafb;
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 12px;
-                line-height: 1.4;
-                max-width: 220px;
-                text-align: left;
-                white-space: normal;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.2s ease, transform 0.2s ease;
-                z-index: 10;
-            }
+                    .card .tooltip {
+                        visibility: hidden;
+                        opacity: 0;
+                        width: 220px;
+                        background-color: #111827;
+                        color: #ffffff;
+                        border-radius: 6px;
+                        padding: 8px 10px;
+                        font-size: 12px;
+                        line-height: 1.4;
+                        position: absolute;
+                        bottom: 115%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        transition: opacity 0.2s ease-in-out;
+                        z-index: 100;
+                    }
 
-            /* Tooltip arrow */
-            .tooltip::after {
-                content: "";
-                position: absolute;
-                top: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                border-width: 6px;
-                border-style: solid;
-                border-color: #111827 transparent transparent transparent;
-            }
+                    .card:hover .tooltip {
+                        visibility: visible;
+                        opacity: 1;
+                    }
 
-            /* Show on hover */
-            .card:hover .tooltip {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+                    .card small {
+                        font-size: 0.7rem;
+                        font-weight: 500;
+                        color: #000;
+                    }
 
-            </style>
-            """, unsafe_allow_html=True)
-            st.markdown("""<div style="border-left: 3px solid red; height: 100%; margin: 0 15px;"></div>""",unsafe_allow_html=True)
-            col1, col_line, col2 = st.columns([5, 0.2, 5])
-            with col1:
-                st.markdown(f"""
-                    <h5 class="section-title" style="color:#dc2626">As Desined</h5>
-                    <div class="analysis-grid">
-                        <div class="card"><small>Wall R-Value (ft²·°F·h/BTU)</small><h6>{r_wall_0:.2f}</h6></div>
-                        <div class="card"><small>Roof R-Value (ft²·°F·h/BTU)</small><h6>{r_roof_0:.2f}</h6></div>
-                        <div class="card"><small>Window U-Value(BTU/ft²·°F·h)</small><h6>{1/r_wind_0:.2f}</h6></div>
-                        <div class="card"><small>Shading Coefficient</small><h6>{shgc_0*0.87:.2f}</h6></div>
-                        <div class="card"><small>Window-to-Wall Ratio</small><h6>{wwr_0*100:.1f}%</h6></div>
-                        <div class="card"><small>Lighting (W/ft²)</small><h6>{light_0:.1f}</h6></div>
-                        <div class="card"><small>Equipment (W/ft²)</small><h6>{equip_0:.1f}</h6></div>
-                        <div class="card"><small>Energy Outcome (kWh)</small><h6>{ener_0:,.0f}</h6></div>
-                    </div>
-                """, 
-                unsafe_allow_html=True)
-            with col_line:
-                st.markdown("<div style='border-left:3px solid red; height:245px'></div>",unsafe_allow_html=True)
-                wall_val = float(r_wall_0 if wall_choice == "As Designed" else wall_choice.replace("R", ""))
-                roof_val = float(r_roof_0 if roof_choice == "As Designed" else roof_choice.replace("R", ""))
-                window_val = float(1/r_wind_0 if glazing_rchoice == "As Designed" else glazing_rchoice)
-                shading_val = float(shgc_0*0.87 if glazing_scchoice == "As Designed" else glazing_scchoice)
+                    .card h6 {
+                        margin-top: 6px;
+                        font-size: 1.05rem;
+                        font-weight: 600;
+                        color: #0f172a;
+                    }
 
-                # Handle WWR (strip % if needed)
-                if wwr_choice == "As Designed":
-                    wwr_val = wwr_0*100
-                else:
-                    wwr_val = float(wwr_choice.strip('%'))
+                    .section-title {
+                        font-size: 1rem;
+                        font-weight: 600;
+                        color: #dc2626;
+                        margin: 18px 0 10px 0;
+                    }
+                    .card {
+                        position: relative;
+                    }
 
-                # Lighting, Equipment, Energy
-                light_val = float(light_0 if light_choice == "As Designed" else light_choice)
-                equip_val = float(equip_0 if equip_choice == "As Designed" else equip_choice)
-                ener_val = float(ener_0 if str(ener_1) == "As Designed" else ener_1)
+                    .info-icon {
+                        font-size: 12px;
+                        cursor: pointer;
+                        color: #6b7280; /* subtle gray */
+                    }
 
-            with col2:
-                st.markdown(f"""
-                    <h5 class="section-title" style="color:#dc2626">User Selected</h5>
-                    <div class="analysis-grid">
-                        <div class="card"><small>Wall R-Value (ft²·°F·h/BTU)</small><h6>{wall_val:.2f}</h6></div>
-                        <div class="card"><small>Roof R-Value (ft²·°F·h/BTU)</small><h6>{roof_val:.2f}</h6></div>
-                        <div class="card"><small>Window U-Value(BTU/ft²·°F·h)</small><h6>{window_val:.2f}</h6></div>
-                        <div class="card"><small>Shading Coefficient</small><h6>{shading_val:.2f}</h6></div>
-                        <div class="card"><small>Window-to-Wall Ratio</small><h6>{wwr_val:.1f}%</h6></div>
-                        <div class="card"><small>Lighting (W/ft²)</small><h6>{light_val:.1f}</h6></div>
-                        <div class="card"><small>Equipment (W/ft²)</small><h6>{equip_val:.1f}</h6></div>
-                        <div class="card"><small>Energy Outcome (kWh)</small><h6>{ener_1:,.0f}</h6></div>
-                    </div><br>
-                """, unsafe_allow_html=True)
-            
-            st.session_state.wwr_0 = wwr_0*100
-            st.session_state.wwr_1 = wwr_val
-            st.session_state.shgc_0 = shgc_0*0.87
-            st.session_state.shgc_1 = shading_val
-            st.session_state.r_wall_0 = r_wall_0
-            st.session_state.r_wall_1 = wall_val
-            st.session_state.r_roof_0 = r_roof_0
-            st.session_state.r_roof_1 = roof_val
-            st.session_state.r_wind_0 = 1/r_wind_0
-            st.session_state.r_wind_1 = window_val
-            st.session_state.ener_0 = ener_0
-            st.session_state.ener_1 = ener_1
-            st.session_state.light_0  = light_0
-            st.session_state.light_1  = light_val
-            st.session_state.equip_0  = equip_0
-            st.session_state.equip_1  = equip_val
-            
-            ############################################
-            ################ Calculation ###############
-            ############################################
+                    .tooltip {
+                        position: absolute;
+                        bottom: 120%;
+                        left: 50%;
+                        transform: translateX(-50%) translateY(6px);
+                        background: #111827;   /* dark slate */
+                        color: #f9fafb;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        line-height: 1.4;
+                        max-width: 220px;
+                        text-align: left;
+                        white-space: normal;
+                        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.2s ease, transform 0.2s ease;
+                        z-index: 10;
+                    }
 
-            generated_names = [os.path.splitext(f)[0] for f in modified_files1]
-            merged_df = combined_Data1[combined_Data1['FileName'].isin(generated_names)]
-            # st.write(merged_df)
-            merged_df.index = ["As Designed", "User Selected"]
-            energy_cols = [
-                "WALL CONDUCTION", "ROOF CONDUCTION", "WINDOW GLASS+FRM COND", "WINDOW GLASS SOLAR",
-                "DOOR CONDUCTION", "INTERNAL SURFACE COND", "UNDERGROUND SURF COND",
-                "OCCUPANTS TO SPACE", "LIGHT TO SPACE", "EQUIPMENT TO SPACE", "PROCESS TO SPACE", "INFILTRATION"
-            ]
-            energy_loss_cols = [
-                "WALL CONDUCTION_loss", "ROOF CONDUCTION_loss", "WINDOW GLASS+FRM COND_loss", "WINDOW GLASS SOLAR_loss",
-                "DOOR CONDUCTION_loss", "INTERNAL SURFACE COND_loss", "UNDERGROUND SURF COND_loss",
-                "OCCUPANTS TO SPACE_loss", "LIGHT TO SPACE_loss", "EQUIPMENT TO SPACE_loss", "PROCESS TO SPACE_loss", "INFILTRATION_loss"
-            ]
-            as_designed = merged_df.loc["As Designed", energy_cols]
-            as_designed_loss = merged_df.loc["As Designed", energy_loss_cols]
+                    /* Tooltip arrow */
+                    .tooltip::after {
+                        content: "";
+                        position: absolute;
+                        top: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        border-width: 6px;
+                        border-style: solid;
+                        border-color: #111827 transparent transparent transparent;
+                    }
 
-            ecm = merged_df.loc["User Selected", energy_cols]
-            ecm_loss = merged_df.loc["User Selected", energy_loss_cols]
+                    /* Show on hover */
+                    .card:hover .tooltip {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
 
-            m_df_all = pd.concat([as_designed, ecm], axis=1)
-            m_df_all_loss = pd.concat([as_designed_loss, ecm_loss], axis=1)
+                    </style>
+                    """, unsafe_allow_html=True)
+                    st.markdown("""<div style="border-left: 3px solid red; height: 100%; margin: 0 15px;"></div>""",unsafe_allow_html=True)
+                    col1, col_line, col2 = st.columns([5, 0.2, 5])
+                    with col1:
+                        st.markdown(f"""
+                            <h5 class="section-title" style="color:#dc2626">As Desined</h5>
+                            <div class="analysis-grid">
+                                <div class="card"><small>Wall R-Value (ft²·°F·h/BTU)</small><h6>{r_wall_0:.2f}</h6></div>
+                                <div class="card"><small>Roof R-Value (ft²·°F·h/BTU)</small><h6>{r_roof_0:.2f}</h6></div>
+                                <div class="card"><small>Window U-Value(BTU/ft²·°F·h)</small><h6>{1/r_wind_0:.2f}</h6></div>
+                                <div class="card"><small>Shading Coefficient</small><h6>{shgc_0*0.87:.2f}</h6></div>
+                                <div class="card"><small>Window-to-Wall Ratio</small><h6>{wwr_0*100:.1f}%</h6></div>
+                                <div class="card"><small>Lighting (W/ft²)</small><h6>{light_0:.1f}</h6></div>
+                                <div class="card"><small>Equipment (W/ft²)</small><h6>{equip_0:.1f}</h6></div>
+                                <div class="card"><small>Energy Outcome (kWh)</small><h6>{ener_0:,.0f}</h6></div>
+                            </div>
+                        """, 
+                        unsafe_allow_html=True)
+                    with col_line:
+                        st.markdown("<div style='border-left:3px solid red; height:245px'></div>",unsafe_allow_html=True)
+                        wall_val = float(r_wall_0 if wall_choice == "As Designed" else wall_choice.replace("R", ""))
+                        roof_val = float(r_roof_0 if roof_choice == "As Designed" else roof_choice.replace("R", ""))
+                        window_val = float(1/r_wind_0 if glazing_rchoice == "As Designed" else glazing_rchoice)
+                        shading_val = float(shgc_0*0.87 if glazing_scchoice == "As Designed" else glazing_scchoice)
 
-            # parameters having negative values
-            negative_params = m_df_all[(m_df_all < 0).any(axis=1)]
-            positive_params = m_df_all_loss[(m_df_all_loss > 0).any(axis=1)]
+                        # Handle WWR (strip % if needed)
+                        if wwr_choice == "As Designed":
+                            wwr_val = wwr_0*100
+                        else:
+                            wwr_val = float(wwr_choice.strip('%'))
 
-            as_designed = as_designed[as_designed > 0]
-            ecm = ecm[ecm > 0]
-            # as_designed_loss = as_designed_loss[as_designed_loss > 0]
-            # ecm_loss = ecm_loss[ecm_loss > 0]
+                        # Lighting, Equipment, Energy
+                        light_val = float(light_0 if light_choice == "As Designed" else light_choice)
+                        equip_val = float(equip_0 if equip_choice == "As Designed" else equip_choice)
+                        ener_val = float(ener_0 if str(ener_1) == "As Designed" else ener_1)
 
-            as_designed_loss = as_designed_loss[as_designed_loss < 0].abs()
-            ecm_loss = ecm_loss[ecm_loss < 0].abs()
+                    with col2:
+                        st.markdown(f"""
+                            <h5 class="section-title" style="color:#dc2626">User Selected</h5>
+                            <div class="analysis-grid">
+                                <div class="card"><small>Wall R-Value (ft²·°F·h/BTU)</small><h6>{wall_val:.2f}</h6></div>
+                                <div class="card"><small>Roof R-Value (ft²·°F·h/BTU)</small><h6>{roof_val:.2f}</h6></div>
+                                <div class="card"><small>Window U-Value(BTU/ft²·°F·h)</small><h6>{window_val:.2f}</h6></div>
+                                <div class="card"><small>Shading Coefficient</small><h6>{shading_val:.2f}</h6></div>
+                                <div class="card"><small>Window-to-Wall Ratio</small><h6>{wwr_val:.1f}%</h6></div>
+                                <div class="card"><small>Lighting (W/ft²)</small><h6>{light_val:.1f}</h6></div>
+                                <div class="card"><small>Equipment (W/ft²)</small><h6>{equip_val:.1f}</h6></div>
+                                <div class="card"><small>Energy Outcome (kWh)</small><h6>{ener_1:,.0f}</h6></div>
+                            </div><br>
+                        """, unsafe_allow_html=True)
+                    
+                    st.session_state.wwr_0 = wwr_0*100
+                    st.session_state.wwr_1 = wwr_val
+                    st.session_state.shgc_0 = shgc_0*0.87
+                    st.session_state.shgc_1 = shading_val
+                    st.session_state.r_wall_0 = r_wall_0
+                    st.session_state.r_wall_1 = wall_val
+                    st.session_state.r_roof_0 = r_roof_0
+                    st.session_state.r_roof_1 = roof_val
+                    st.session_state.r_wind_0 = 1/r_wind_0
+                    st.session_state.r_wind_1 = window_val
+                    st.session_state.ener_0 = ener_0
+                    st.session_state.ener_1 = ener_1
+                    st.session_state.light_0  = light_0
+                    st.session_state.light_1  = light_val
+                    st.session_state.equip_0  = equip_0
+                    st.session_state.equip_1  = equip_val
+                    
+                    ############################################
+                    ################ Calculation ###############
+                    ############################################
 
-            m_df = pd.concat([as_designed, ecm], axis=1)
-            m_df_loss = pd.concat([as_designed_loss, ecm_loss], axis=1)
+                    generated_names = [os.path.splitext(f)[0] for f in modified_files1]
+                    merged_df = combined_Data1[combined_Data1['FileName'].isin(generated_names)]
+                    # st.write(merged_df)
+                    merged_df.index = ["As Designed", "User Selected"]
+                    energy_cols = [
+                        "WALL CONDUCTION", "ROOF CONDUCTION", "WINDOW GLASS+FRM COND", "WINDOW GLASS SOLAR",
+                        "DOOR CONDUCTION", "INTERNAL SURFACE COND", "UNDERGROUND SURF COND",
+                        "OCCUPANTS TO SPACE", "LIGHT TO SPACE", "EQUIPMENT TO SPACE", "PROCESS TO SPACE", "INFILTRATION"
+                    ]
+                    energy_loss_cols = [
+                        "WALL CONDUCTION_loss", "ROOF CONDUCTION_loss", "WINDOW GLASS+FRM COND_loss", "WINDOW GLASS SOLAR_loss",
+                        "DOOR CONDUCTION_loss", "INTERNAL SURFACE COND_loss", "UNDERGROUND SURF COND_loss",
+                        "OCCUPANTS TO SPACE_loss", "LIGHT TO SPACE_loss", "EQUIPMENT TO SPACE_loss", "PROCESS TO SPACE_loss", "INFILTRATION_loss"
+                    ]
+                    as_designed = merged_df.loc["As Designed", energy_cols]
+                    as_designed_loss = merged_df.loc["As Designed", energy_loss_cols]
 
-            m_df = m_df.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
-            m_df_all = m_df_all.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
-            m_df_all_loss = m_df_all_loss.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
-            m_df.insert(0, 'Parameters', m_df.index)
-            m_df_all.insert(0, 'Parameters', m_df_all.index)
-            m_df_all_loss.insert(0, 'Parameters', m_df_all_loss.index)
-            m_df = m_df.loc[:, m_df.columns.notna()]          # drop NaN column names
-            m_df = m_df.loc[:, m_df.columns != ''] 
-            m_df['As Designed (kW)'] = pd.to_numeric(m_df['As Designed (kW)'], errors='coerce')
-            m_df_all['As Designed (kW)'] = pd.to_numeric(m_df_all['As Designed (kW)'], errors='coerce')
-            m_df_all_loss['As Designed (kW)'] = pd.to_numeric(m_df_all_loss['As Designed (kW)'], errors='coerce')
-            m_df['User Selected (kW)'] = pd.to_numeric(m_df['User Selected (kW)'], errors='coerce')
-            m_df_all['User Selected (kW)'] = pd.to_numeric(m_df_all['User Selected (kW)'], errors='coerce')
-            m_df_all_loss['User Selected (kW)'] = pd.to_numeric(m_df_all_loss['User Selected (kW)'], errors='coerce')
-            m_df['% Saving'] = ((m_df['As Designed (kW)'] - m_df['User Selected (kW)']) / m_df['As Designed (kW)']) * 100
-            m_df_all['% Saving'] = ((m_df_all['As Designed (kW)'] - m_df_all['User Selected (kW)']) / m_df_all['As Designed (kW)']) * 100
-            m_df_all_loss['% Saving'] = ((m_df_all_loss['As Designed (kW)'] - m_df_all_loss['User Selected (kW)']) / m_df_all_loss['As Designed (kW)']) * 100
-            m_df['% Saving'] = m_df['% Saving'].round(1)
-            m_df_all['% Saving'] = m_df_all['% Saving'].round(1)
-            m_df_all_loss['% Saving'] = m_df_all_loss['% Saving'].round(1)
-            m_df = m_df.reset_index(drop=True)
-            m_df_all = m_df_all.reset_index(drop=True)
-            m_df_all_loss = m_df_all_loss.reset_index(drop=True)
+                    ecm = merged_df.loc["User Selected", energy_cols]
+                    ecm_loss = merged_df.loc["User Selected", energy_loss_cols]
 
-            ##########################################################
-            ################## Charts Calculation ####################
-            ##########################################################
+                    m_df_all = pd.concat([as_designed, ecm], axis=1)
+                    m_df_all_loss = pd.concat([as_designed_loss, ecm_loss], axis=1)
 
-            dfsi = []
-            for file in os.listdir(batch_output_folder1):
-                if file.lower().endswith("_bepu.csv"):
-                    file_path = os.path.join(batch_output_folder1, file)
-                    df = pd.read_csv(file_path)
-                    dfsi.append(df)
-            
-            if dfsi:  # check if list is not empty
-                dfs = dfsi[0]  # first BEPU CSV
-                i = 1  # or any valid index less than len(dfsi)
-                df = dfsi[i]
-            else:
-                st.warning("No _bepu.csv files found.")
-            # st.write(dfs) # as desined
-            # st.write(df) # user selected
-            # df = df.drop(index=[0, 1])
-            # dfs = dfs.drop(index=[0, 1])
-            numeric_cols = df.columns[3:]
-            numeric_cols1 = dfs.columns[3:]
-            df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-            dfs[numeric_cols1] = dfs[numeric_cols1].apply(pd.to_numeric, errors='coerce')
-            # st.write(numeric_cols)
-            # st.write(numeric_cols1)
-            # 3️⃣ Group by 'Units' and sum numeric columns
-            unit_sum_df = df.groupby("BEPU-UNIT")[numeric_cols].sum().reset_index()
-            unit_sum_dfs = dfs.groupby("BEPU-UNIT")[numeric_cols1].sum().reset_index()
-            # Filter only KWH rows
-            df_asdes_kwh = unit_sum_dfs[unit_sum_dfs["BEPU-UNIT"] == "KWH"]
-            df_ecm_kwh = unit_sum_df[unit_sum_df["BEPU-UNIT"] == "KWH"]
-            param_cols = [col for col in unit_sum_dfs.columns if col not in ['Unnamed: 0', 'BEPU-UNIT', 'TOTAL-BEPU']]
+                    # parameters having negative values
+                    negative_params = m_df_all[(m_df_all < 0).any(axis=1)]
+                    positive_params = m_df_all_loss[(m_df_all_loss > 0).any(axis=1)]
 
-            # Create a combined DataFrame
-            combined_df = pd.DataFrame({"Parameters": param_cols, "As Designed (kWh)": df_asdes_kwh[param_cols].iloc[0].values, "User Selected (kWh)": df_ecm_kwh[param_cols].iloc[0].values})
-            combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["User Selected (kWh)"]) / combined_df["As Designed (kWh)"] * 100).round(2)
-            combined_df = combined_df[(combined_df["As Designed (kWh)"] > 0) | (combined_df["User Selected (kWh)"] > 0)]
-            # st.write(combined_df)
-            from plotly.subplots import make_subplots
-            import plotly.graph_objects as go
-            unit_sum_df = unit_sum_df.loc[:, (unit_sum_df != 0).any(axis=0)]
-            unit_sum_dfs = unit_sum_dfs.loc[:, (unit_sum_dfs != 0).any(axis=0)]
-            component_columns_1 = [col for col in unit_sum_df.columns if col != "TOTAL-BEPU"]
-            component_columns_2 = [col for col in unit_sum_dfs.columns if col != "TOTAL-BEPU"]
-            contribution2 = unit_sum_df[component_columns_1].sum().reset_index()
-            contribution2.columns = ["Component", "Value"]
-            contribution1 = unit_sum_dfs[component_columns_2].sum().reset_index()
-            contribution1.columns = ["Component", "Value"]
-        
-            color_map = {
-                "MISQ-EQUIP": "#1f77b4",
-                "LIGHTS": "#aec7e8",
-                "SPACE-COOLING": "#ff4d4d",
-                "VENT FANS": "#f4a3a3",
-                "EXT-USAGE": "#2ca58d",
-                "PUMPS & AUX": "#7bd389",
-                "HEAT-REJECT": "#ff9f1c",
-                "SPACE-HEATING": "#ffd166",
-                "HT-PUMP-SUPPLEMENT": "#9b5de5",
-                "BEPU-UNIT": "#9467bd"
-            }
+                    as_designed = as_designed[as_designed > 0]
+                    ecm = ecm[ecm > 0]
+                    # as_designed_loss = as_designed_loss[as_designed_loss > 0]
+                    # ecm_loss = ecm_loss[ecm_loss > 0]
 
-            figEUI = make_subplots(
-                rows=1, cols=2,
-                specs=[[{'type':'domain'}, {'type':'domain'}]],
-                subplot_titles=('As Designed', 'User Selected'),
-                horizontal_spacing=0.05
-            )
+                    as_designed_loss = as_designed_loss[as_designed_loss < 0].abs()
+                    ecm_loss = ecm_loss[ecm_loss < 0].abs()
 
-            figEUI.add_trace(
-                go.Pie(
-                    labels=contribution1["Component"],
-                    values=contribution1["Value"],
-                    marker=dict(colors=[color_map.get(i, "#808080") for i in contribution1["Component"]]),
-                    # marker=dict(colors=[color_map[i] for i in contribution1["Component"]]),
-                    name="As Designed"
-                ),1,1
-            )
+                    m_df = pd.concat([as_designed, ecm], axis=1)
+                    m_df_loss = pd.concat([as_designed_loss, ecm_loss], axis=1)
 
-            figEUI.add_trace(
-                go.Pie(
-                    labels=contribution2["Component"],
-                    values=contribution2["Value"],
-                    marker=dict(colors=[color_map.get(i, "#808080") for i in contribution2["Component"]]),
-                    name="User Selected"
-                ),1,2
-            )
+                    m_df = m_df.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
+                    m_df_all = m_df_all.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
+                    m_df_all_loss = m_df_all_loss.rename(columns={'As Designed': 'As Designed (kW)', "User Selected": 'User Selected (kW)'})
+                    m_df.insert(0, 'Parameters', m_df.index)
+                    m_df_all.insert(0, 'Parameters', m_df_all.index)
+                    m_df_all_loss.insert(0, 'Parameters', m_df_all_loss.index)
+                    m_df = m_df.loc[:, m_df.columns.notna()]          # drop NaN column names
+                    m_df = m_df.loc[:, m_df.columns != ''] 
+                    m_df['As Designed (kW)'] = pd.to_numeric(m_df['As Designed (kW)'], errors='coerce')
+                    m_df_all['As Designed (kW)'] = pd.to_numeric(m_df_all['As Designed (kW)'], errors='coerce')
+                    m_df_all_loss['As Designed (kW)'] = pd.to_numeric(m_df_all_loss['As Designed (kW)'], errors='coerce')
+                    m_df['User Selected (kW)'] = pd.to_numeric(m_df['User Selected (kW)'], errors='coerce')
+                    m_df_all['User Selected (kW)'] = pd.to_numeric(m_df_all['User Selected (kW)'], errors='coerce')
+                    m_df_all_loss['User Selected (kW)'] = pd.to_numeric(m_df_all_loss['User Selected (kW)'], errors='coerce')
+                    m_df['% Saving'] = ((m_df['As Designed (kW)'] - m_df['User Selected (kW)']) / m_df['As Designed (kW)']) * 100
+                    m_df_all['% Saving'] = ((m_df_all['As Designed (kW)'] - m_df_all['User Selected (kW)']) / m_df_all['As Designed (kW)']) * 100
+                    m_df_all_loss['% Saving'] = ((m_df_all_loss['As Designed (kW)'] - m_df_all_loss['User Selected (kW)']) / m_df_all_loss['As Designed (kW)']) * 100
+                    m_df['% Saving'] = m_df['% Saving'].round(1)
+                    m_df_all['% Saving'] = m_df_all['% Saving'].round(1)
+                    m_df_all_loss['% Saving'] = m_df_all_loss['% Saving'].round(1)
+                    m_df = m_df.reset_index(drop=True)
+                    m_df_all = m_df_all.reset_index(drop=True)
+                    m_df_all_loss = m_df_all_loss.reset_index(drop=True)
 
-            figEUI.update_traces(
-                hole=0.35,
-                textinfo="percent+label",
-                hoverinfo="label+value+percent",
-                textfont=dict(size=12)
-            )
+                    ##########################################################
+                    ################## Charts Calculation ####################
+                    ##########################################################
 
-            figEUI.update_layout(
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.15,
-                    xanchor="center",
-                    x=0.5
-                ),
-                margin=dict(t=50, b=60, l=30, r=30),
-                height=500
-            )
-            import plotly.io as pio
-            pio.templates.default = "none"
-            figEUI.update_traces(textposition="inside")
+                    dfsi = []
+                    for file in os.listdir(batch_output_folder1):
+                        if file.lower().endswith("_bepu.csv"):
+                            file_path = os.path.join(batch_output_folder1, file)
+                            df = pd.read_csv(file_path)
+                            dfsi.append(df)
+                    
+                    if dfsi:  # check if list is not empty
+                        dfs = dfsi[0]  # first BEPU CSV
+                        i = 1  # or any valid index less than len(dfsi)
+                        df = dfsi[i]
+                    else:
+                        st.warning("No _bepu.csv files found.")
+                    # st.write(dfs) # as desined
+                    # st.write(df) # user selected
+                    # df = df.drop(index=[0, 1])
+                    # dfs = dfs.drop(index=[0, 1])
+                    numeric_cols = df.columns[3:]
+                    numeric_cols1 = dfs.columns[3:]
+                    df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
+                    dfs[numeric_cols1] = dfs[numeric_cols1].apply(pd.to_numeric, errors='coerce')
+                    # st.write(numeric_cols)
+                    # st.write(numeric_cols1)
+                    # 3️⃣ Group by 'Units' and sum numeric columns
+                    unit_sum_df = df.groupby("BEPU-UNIT")[numeric_cols].sum().reset_index()
+                    unit_sum_dfs = dfs.groupby("BEPU-UNIT")[numeric_cols1].sum().reset_index()
+                    # Filter only KWH rows
+                    df_asdes_kwh = unit_sum_dfs[unit_sum_dfs["BEPU-UNIT"] == "KWH"]
+                    df_ecm_kwh = unit_sum_df[unit_sum_df["BEPU-UNIT"] == "KWH"]
+                    param_cols = [col for col in unit_sum_dfs.columns if col not in ['Unnamed: 0', 'BEPU-UNIT', 'TOTAL-BEPU']]
 
-            custom_colors = ["#FF4B4B", "#1E90FF"]
-            temp_df = combined_df.rename(columns={"As Designed (kWh)": "As Designed", "User Selected (kWh)": "User Selected"})
+                    # Create a combined DataFrame
+                    combined_df = pd.DataFrame({"Parameters": param_cols, "As Designed (kWh)": df_asdes_kwh[param_cols].iloc[0].values, "User Selected (kWh)": df_ecm_kwh[param_cols].iloc[0].values})
+                    combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["User Selected (kWh)"]) / combined_df["As Designed (kWh)"] * 100).round(2)
+                    combined_df = combined_df[(combined_df["As Designed (kWh)"] > 0) | (combined_df["User Selected (kWh)"] > 0)]
+                    # st.write(combined_df)
+                    from plotly.subplots import make_subplots
+                    import plotly.graph_objects as go
+                    unit_sum_df = unit_sum_df.loc[:, (unit_sum_df != 0).any(axis=0)]
+                    unit_sum_dfs = unit_sum_dfs.loc[:, (unit_sum_dfs != 0).any(axis=0)]
+                    component_columns_1 = [col for col in unit_sum_df.columns if col != "TOTAL-BEPU"]
+                    component_columns_2 = [col for col in unit_sum_dfs.columns if col != "TOTAL-BEPU"]
+                    contribution2 = unit_sum_df[component_columns_1].sum().reset_index()
+                    contribution2.columns = ["Component", "Value"]
+                    contribution1 = unit_sum_dfs[component_columns_2].sum().reset_index()
+                    contribution1.columns = ["Component", "Value"]
+                
+                    color_map = {
+                        "MISQ-EQUIP": "#1f77b4",
+                        "LIGHTS": "#aec7e8",
+                        "SPACE-COOLING": "#ff4d4d",
+                        "VENT FANS": "#f4a3a3",
+                        "EXT-USAGE": "#2ca58d",
+                        "PUMPS & AUX": "#7bd389",
+                        "HEAT-REJECT": "#ff9f1c",
+                        "SPACE-HEATING": "#ffd166",
+                        "HT-PUMP-SUPPLEMENT": "#9b5de5",
+                        "BEPU-UNIT": "#9467bd"
+                    }
 
-            figA = px.bar(
-                temp_df,
-                x="Parameters",
-                y=["As Designed", "User Selected"],
-                barmode="group",
-                labels={"value": "Energy (kWh)", "Parameters": ""},  # Remove x-axis label
-                color_discrete_sequence=custom_colors
-            )
+                    figEUI = make_subplots(
+                        rows=1, cols=2,
+                        specs=[[{'type':'domain'}, {'type':'domain'}]],
+                        subplot_titles=('As Designed', 'User Selected'),
+                        horizontal_spacing=0.05
+                    )
 
-            figA.update_layout(
-                legend=dict(
-                    title_text="",           # no legend title
-                    orientation="h",         # horizontal legend
-                    yanchor="bottom",
-                    y=-0.4,                  # below chart
-                    xanchor="center",
-                    x=0.5,
-                    font=dict(size=12)
-                ),
-                xaxis_tickangle=-45,
-                margin=dict(t=20, b=80)
-            )
-            
-            
-            # --- Chart 2: Stacked Bar Chart ---
-            combined_df = combined_df.drop('% Saving', axis=1)
-            # --- Build Horizontal Stacked Bar Chart manually ---
-            figB = go.Figure()
-            for param in combined_df["Parameters"]:
-                values = combined_df.loc[
-                    combined_df["Parameters"] == param,
-                    ["As Designed (kWh)", "User Selected (kWh)"]
-                ].values[0]
+                    figEUI.add_trace(
+                        go.Pie(
+                            labels=contribution1["Component"],
+                            values=contribution1["Value"],
+                            marker=dict(colors=[color_map.get(i, "#808080") for i in contribution1["Component"]]),
+                            # marker=dict(colors=[color_map[i] for i in contribution1["Component"]]),
+                            name="As Designed"
+                        ),1,1
+                    )
 
-                figB.add_trace(go.Bar(
-                    name=param,
-                    y=["As Designed", "User Selected"],
-                    x=values,
-                    text=[f"{v:,}" for v in values],   # comma separated inside bars
-                    texttemplate='%{x:.2~s}', # Use the same format specifier for data labels
-                    textposition='inside',
-                    orientation='h'
-                ))
-            # fig.update_traces(
-            #     texttemplate='%{x:.2~s}', # Use the same format specifier for data labels
-            #     textposition='outside'
-            # )
+                    figEUI.add_trace(
+                        go.Pie(
+                            labels=contribution2["Component"],
+                            values=contribution2["Value"],
+                            marker=dict(colors=[color_map.get(i, "#808080") for i in contribution2["Component"]]),
+                            name="User Selected"
+                        ),1,2
+                    )
 
-            figB.update_layout(
-                barmode='stack',
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.25,
-                    xanchor="center",
-                    x=0.5
-                ),
-                xaxis=dict(
-                    title="Energy (kWh)",
-                    # tickformat=",",   # comma separated on axis
-                ),
-                yaxis_title=""
-            )
+                    figEUI.update_traces(
+                        hole=0.35,
+                        textinfo="percent+label",
+                        hoverinfo="label+value+percent",
+                        textfont=dict(size=12)
+                    )
 
-            ###############################################
-            #################### EUI ######################
-            ###############################################
+                    figEUI.update_layout(
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=-0.15,
+                            xanchor="center",
+                            x=0.5
+                        ),
+                        margin=dict(t=50, b=60, l=30, r=30),
+                        height=500
+                    )
+                    import plotly.io as pio
+                    pio.templates.default = "none"
+                    figEUI.update_traces(textposition="inside")
 
-            st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Distribution</h5>", unsafe_allow_html=True)
-            st.plotly_chart(figEUI, use_container_width=True, key="EnergyUseDistribyion")
-            st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Comparison</h5>", unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.plotly_chart(figA, use_container_width=True)
-            with col2:
-                st.plotly_chart(figB, use_container_width=True)
+                    custom_colors = ["#FF4B4B", "#1E90FF"]
+                    temp_df = combined_df.rename(columns={"As Designed (kWh)": "As Designed", "User Selected (kWh)": "User Selected"})
 
-            st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Summary by End Use</h5>", unsafe_allow_html=True)
-            combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["User Selected (kWh)"]) / combined_df["As Designed (kWh)"] * 100).round(2)
-            # st.dataframe(combined_df.style.format("{:,}"))
-            numeric_cols = combined_df.select_dtypes(include='number').columns
-            styled_df = combined_df.style.format({col: "{:,}" for col in numeric_cols})
-            st.dataframe(styled_df)
-            st.markdown('<hr style="border:1px solid red">', unsafe_allow_html=True)
+                    figA = px.bar(
+                        temp_df,
+                        x="Parameters",
+                        y=["As Designed", "User Selected"],
+                        barmode="group",
+                        labels={"value": "Energy (kWh)", "Parameters": ""},  # Remove x-axis label
+                        color_discrete_sequence=custom_colors
+                    )
 
-            ###############################################
-            ############## Gains and Losses ###############
-            ###############################################
+                    figA.update_layout(
+                        legend=dict(
+                            title_text="",           # no legend title
+                            orientation="h",         # horizontal legend
+                            yanchor="bottom",
+                            y=-0.4,                  # below chart
+                            xanchor="center",
+                            x=0.5,
+                            font=dict(size=12)
+                        ),
+                        xaxis_tickangle=-45,
+                        margin=dict(t=20, b=80)
+                    )
+                    
+                    
+                    # --- Chart 2: Stacked Bar Chart ---
+                    combined_df = combined_df.drop('% Saving', axis=1)
+                    # --- Build Horizontal Stacked Bar Chart manually ---
+                    figB = go.Figure()
+                    for param in combined_df["Parameters"]:
+                        values = combined_df.loc[
+                            combined_df["Parameters"] == param,
+                            ["As Designed (kWh)", "User Selected (kWh)"]
+                        ].values[0]
 
-            all_labels = sorted(set(as_designed.index).union(set(ecm.index)))
-            all_labels_loss = sorted(set(as_designed_loss.index).union(set(ecm_loss.index)))
-            color_map = {
-                "WALL CONDUCTION": "#dfe183",     # Blue
-                "ROOF CONDUCTION": "#d893c1",     # Red
-                "WINDOW GLASS+FRM COND": "#87ceeb",  # Light Blue
-                "WINDOW GLASS SOLAR": "#ff6347",  # Light Red / Tomato
-                "DOOR CONDUCTION": "#2ecc71",     # Green
-                "INTERNAL SURFACE COND": "#90ee90",  # Light Green
-                "UNDERGROUND SURF COND": "#4169e1",  # Royal Blue
-                "OCCUPANTS TO SPACE": "#ff7f7f",  # Soft Red
-                "LIGHT TO SPACE": "#3cb371",      # Medium Sea Green
-                "EQUIPMENT TO SPACE": "#add8e6",  # Light Blue
-                "PROCESS TO SPACE": "#66cdaa",    # Medium Aquamarine
-                "INFILTRATION": "#ff4500"         # Orange-Red
-            }
-            color_map_loss = {
-                "WALL CONDUCTION_loss": "#dfe183",     # Blue
-                "ROOF CONDUCTION_loss": "#d893c1",     # Red
-                "WINDOW GLASS+FRM COND_loss": "#87ceeb",  # Light Blue
-                "WINDOW GLASS SOLAR_loss": "#ff6347",  # Light Red / Tomato
-                "DOOR CONDUCTION_loss": "#2ecc71",     # Green
-                "INTERNAL SURFACE COND_loss": "#90ee90",  # Light Green
-                "UNDERGROUND SURF COND_loss": "#4169e1",  # Royal Blue
-                "OCCUPANTS TO SPACE_loss": "#ff7f7f",  # Soft Red
-                "LIGHT TO SPACE_loss": "#3cb371",      # Medium Sea Green
-                "EQUIPMENT TO SPACE_loss": "#add8e6",  # Light Blue
-                "PROCESS TO SPACE_loss": "#66cdaa",    # Medium Aquamarine
-                "INFILTRATION_loss": "#ff4500"         # Orange-Red
-            }
+                        figB.add_trace(go.Bar(
+                            name=param,
+                            y=["As Designed", "User Selected"],
+                            x=values,
+                            text=[f"{v:,}" for v in values],   # comma separated inside bars
+                            texttemplate='%{x:.2~s}', # Use the same format specifier for data labels
+                            textposition='inside',
+                            orientation='h'
+                        ))
+                    # fig.update_traces(
+                    #     texttemplate='%{x:.2~s}', # Use the same format specifier for data labels
+                    #     textposition='outside'
+                    # )
 
-            # --- Helper to get colors in correct order ---
-            def get_colors(labels):
-                return [color_map.get(l, "#cccccc") for l in labels]
-            def get_colors_loss(labels):
-                return [color_map_loss.get(l, "#cccccc") for l in labels]
-            def clean_labels(labels):
-                # Ensure output is a list of strings
-                return [str(l).replace("_loss", "") for l in labels]
+                    figB.update_layout(
+                        barmode='stack',
+                        legend=dict(
+                            orientation="h",
+                            yanchor="top",
+                            y=-0.25,
+                            xanchor="center",
+                            x=0.5
+                        ),
+                        xaxis=dict(
+                            title="Energy (kWh)",
+                            # tickformat=",",   # comma separated on axis
+                        ),
+                        yaxis_title=""
+                    )
 
-            # --- Create subplots ---
-            fig = make_subplots(
-                rows=1,
-                cols=2,
-                specs=[[{'type': 'domain'}, {'type': 'domain'}]],
-                subplot_titles=('As Designed', 'User Selected'),
-                horizontal_spacing=0.12
-            )
+                    ###############################################
+                    #################### EUI ######################
+                    ###############################################
 
-            figLoss = make_subplots(
-                rows=1,
-                cols=2,
-                specs=[[{'type': 'domain'}, {'type': 'domain'}]],
-                subplot_titles=('As Designed', 'User Selected'),
-                horizontal_spacing=0.12
-            )
-            fig.add_trace(go.Pie(
-                labels=as_designed.index,
-                values=as_designed.values,
-                # name="As Designed",
-                hole=0.45,  # donut hole
-                textinfo='label+percent',  # show label and %
-                textposition='inside',   # <-- force text inside
-                textfont=dict(size=12, color="black"),
-                insidetextorientation='radial',
-                hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                marker=dict(colors=get_colors(as_designed.index), line=dict(color='white', width=2))
-            ), 1, 1)
-            figLoss.add_trace(go.Pie(
-                labels = clean_labels(as_designed_loss.index.tolist()),
-                values=as_designed_loss.values,
-                # name="As Designed",
-                hole=0.45,  # donut hole
-                textinfo='label+percent',  # show label and %
-                textposition='inside',   # <-- force text inside
-                textfont=dict(size=12, color="black"),
-                insidetextorientation='radial',
-                hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                marker=dict(colors=get_colors_loss(as_designed_loss.index), line=dict(color='white', width=2))
-            ), 1, 1)
+                    st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Distribution</h5>", unsafe_allow_html=True)
+                    st.plotly_chart(figEUI, use_container_width=True, key="EnergyUseDistribyion")
+                    st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Comparison</h5>", unsafe_allow_html=True)
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.plotly_chart(figA, use_container_width=True)
+                    with col2:
+                        st.plotly_chart(figB, use_container_width=True)
 
-            # --- Add second pie (ECM) ---
-            fig.add_trace(go.Pie(
-                labels=ecm.index,
-                values=ecm.values,
-                # name="ECM",
-                hole=0.45,  # donut hole
-                textinfo='label+percent',
-                textposition='inside',   # <-- force text inside
-                textfont=dict(size=12, color="black"),
-                insidetextorientation='radial',
-                hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                marker=dict(colors=get_colors(ecm.index), line=dict(color='white', width=2))
-            ), 1, 2)
-            figLoss.add_trace(go.Pie(
-                labels=clean_labels(ecm_loss.index.tolist()),
-                values=ecm_loss.values,
-                hole=0.45,  # donut hole
-                textinfo='label+percent',
-                textposition='inside',   # <-- force text inside
-                textfont=dict(size=12, color="black"),
-                insidetextorientation='radial',
-                hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
-                marker=dict(
-                    colors=get_colors_loss(ecm_loss.index),
-                    line=dict(color='white', width=2)
-                )
-            ), 1, 2)
-            st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Gains Summary</h5>", unsafe_allow_html=True)
-            annotations = []
-            annotations1 = []
-            # Left chart time
-            annotations_gain = [
-                dict(
-                    text="Peak Time: Jun 16, 4 PM",
-                    x=0.20,
-                    y=-0.15,
-                    xref="paper",
-                    yref="paper",
-                    showarrow=False,
-                    font=dict(size=12, color="black")
-                ),
-                dict(
-                    text="Peak Time: Jun 16, 4 PM",
-                    x=0.80,
-                    y=-0.15,
-                    xref="paper",
-                    yref="paper",
-                    showarrow=False,
-                    font=dict(size=12, color="black")
-                )
-            ]
-            annotations_loss = [
-                dict(
-                    text="Peak Time: Jan 18, 6 AM",
-                    x=0.20,
-                    y=-0.15,
-                    xref="paper",
-                    yref="paper",
-                    showarrow=False,
-                    font=dict(size=12, color="black")
-                ),
-                dict(
-                    text="Peak Time: Jan 18, 6 AM",
-                    x=0.80,
-                    y=-0.15,
-                    xref="paper",
-                    yref="paper",
-                    showarrow=False,
-                    font=dict(size=12, color="black")
-                )
-            ]
-            fig.update_layout(
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.18,
-                    xanchor="center",
-                    x=0.5
-                ),
-                height=600,
-                width=1200,
-                margin=dict(t=120, b=160, l=40, r=40),
-                annotations=annotations_gain
-            )
-           
-            figLoss.update_layout(
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.18,
-                    xanchor="center",
-                    x=0.5
-                ),
-                height=600,
-                width=1200,
-                margin=dict(t=120, b=160, l=40, r=40),
-                annotations=annotations_loss
-            )
-            fig.update_traces(textposition="inside", automargin=True)
-            figLoss.update_traces(textposition="inside", automargin=True)
-            st.plotly_chart(fig)
+                    st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Energy Use Summary by End Use</h5>", unsafe_allow_html=True)
+                    combined_df["% Saving"] = ((combined_df["As Designed (kWh)"] - combined_df["User Selected (kWh)"]) / combined_df["As Designed (kWh)"] * 100).round(2)
+                    # st.dataframe(combined_df.style.format("{:,}"))
+                    numeric_cols = combined_df.select_dtypes(include='number').columns
+                    styled_df = combined_df.style.format({col: "{:,}" for col in numeric_cols})
+                    st.dataframe(styled_df)
+                    st.markdown('<hr style="border:1px solid red">', unsafe_allow_html=True)
 
-            # if not negative_params.empty:
-            #     neg_list = negative_params['Parameters'].tolist()
-            #     st.markdown(f""" ⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period. Losses components such as {', '.join(map(str, neg_list))} were ignored.""")
-            # else:
-            st.markdown(f"""⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period..""")
-            
-            st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Losses Summary</h5>", unsafe_allow_html=True)
-            st.plotly_chart(figLoss)
-            if not positive_params.empty:
-                pos_list = [i.replace('_loss','') for i in positive_params.index]
-                st.markdown(
-                    f"""⚠️ **Note:** The above charts consider only Heating Load for Peak Sizing Period.""")
-            else:
-                st.markdown(f"""⚠️ **Note:** The above charts consider only only Heating Load for Peak Sizing Period.""")
-            
-            st.markdown(
-                "<h5 style='text-align:left; color:red; font-weight:600;'>Building Peak Load Components of Gains and Losses</h5>", unsafe_allow_html=True)
-            m_df_all_loss = m_df_all_loss.rename(columns={
-                'Parameters': 'Parameters ECM',
-                'As Designed (kW)': 'As Designed ECM (kW)',
-                'User Selected (kW)': 'User Selected ECM (kW)',
-                '% Saving': '% Saving ECM'
-            })
-            result = pd.concat([m_df_all, m_df_all_loss], axis=1)
-            result = result.drop(columns=['Parameters ECM'])
-            result = result.rename(columns={
-                'As Designed (kW)': 'As Designed',
-                'User Selected (kW)': 'User Selected',
-                '% Saving': 'Saving (%)',
-                'As Designed ECM (kW)': 'As Designed',
-                'User Selected ECM (kW)': 'User Selected',
-                '% Saving ECM': 'Saving (%)'
-            })
-            result.columns = pd.MultiIndex.from_tuples([
-                ('', 'Parameters'),
-                ('Cooling (kW)', 'As Designed'),
-                ('Cooling (kW)', 'User Selected'),
-                ('Cooling (kW)', 'Saving (%)'),
-                ('Heating (kW)', 'As Designed'),
-                ('Heating (kW)', 'User Selected'),
-                ('Heating (kW)', 'Saving (%)')
-            ])
-            st.dataframe(result)
+                    ###############################################
+                    ############## Gains and Losses ###############
+                    ###############################################
 
-            wwr_0 = (row0.get("WWR", 0))
-            wwr_1 = (row1.get("WWR", 0))
-            shgc_0 = (row0.get("SHGC", 0))
-            shgc_1 = (row1.get("SHGC", 0))
-            r_wall_0 = (row0.get("R-VAL-W", 0))
-            r_wall_1 = (row1.get("R-VAL-W", 0))
-            r_roof_0 = (row0.get("R-VAL-R", 0))
-            r_roof_1 = (row1.get("R-VAL-R", 0))
-            r_wind_0 = (row0.get("R-VAL-Wind", 0))
-            r_wind_1 = (row1.get("R-VAL-Wind", 0))
-            ener_0 = (row0.get("Energy_Outcome(KWH)", 0))
-            ener_1 = (row1.get("Energy_Outcome(KWH)", 0))
-            light_0 = (row0.get("Light(W/Sqft)", 0))
-            light_1 = (row1.get("Light(W/Sqft)", 0))
-            equip_0 = (row0.get("Equip(W/Sqft)", 0))
-            equip_1 = (row1.get("Equip(W/Sqft)", 0))
-            
-            all_figs_com = []
-            st.session_state.all_figs_com.extend([figEUI, figA, figB, fig, figLoss])
+                    all_labels = sorted(set(as_designed.index).union(set(ecm.index)))
+                    all_labels_loss = sorted(set(as_designed_loss.index).union(set(ecm_loss.index)))
+                    color_map = {
+                        "WALL CONDUCTION": "#dfe183",     # Blue
+                        "ROOF CONDUCTION": "#d893c1",     # Red
+                        "WINDOW GLASS+FRM COND": "#87ceeb",  # Light Blue
+                        "WINDOW GLASS SOLAR": "#ff6347",  # Light Red / Tomato
+                        "DOOR CONDUCTION": "#2ecc71",     # Green
+                        "INTERNAL SURFACE COND": "#90ee90",  # Light Green
+                        "UNDERGROUND SURF COND": "#4169e1",  # Royal Blue
+                        "OCCUPANTS TO SPACE": "#ff7f7f",  # Soft Red
+                        "LIGHT TO SPACE": "#3cb371",      # Medium Sea Green
+                        "EQUIPMENT TO SPACE": "#add8e6",  # Light Blue
+                        "PROCESS TO SPACE": "#66cdaa",    # Medium Aquamarine
+                        "INFILTRATION": "#ff4500"         # Orange-Red
+                    }
+                    color_map_loss = {
+                        "WALL CONDUCTION_loss": "#dfe183",     # Blue
+                        "ROOF CONDUCTION_loss": "#d893c1",     # Red
+                        "WINDOW GLASS+FRM COND_loss": "#87ceeb",  # Light Blue
+                        "WINDOW GLASS SOLAR_loss": "#ff6347",  # Light Red / Tomato
+                        "DOOR CONDUCTION_loss": "#2ecc71",     # Green
+                        "INTERNAL SURFACE COND_loss": "#90ee90",  # Light Green
+                        "UNDERGROUND SURF COND_loss": "#4169e1",  # Royal Blue
+                        "OCCUPANTS TO SPACE_loss": "#ff7f7f",  # Soft Red
+                        "LIGHT TO SPACE_loss": "#3cb371",      # Medium Sea Green
+                        "EQUIPMENT TO SPACE_loss": "#add8e6",  # Light Blue
+                        "PROCESS TO SPACE_loss": "#66cdaa",    # Medium Aquamarine
+                        "INFILTRATION_loss": "#ff4500"         # Orange-Red
+                    }
+
+                    # --- Helper to get colors in correct order ---
+                    def get_colors(labels):
+                        return [color_map.get(l, "#cccccc") for l in labels]
+                    def get_colors_loss(labels):
+                        return [color_map_loss.get(l, "#cccccc") for l in labels]
+                    def clean_labels(labels):
+                        # Ensure output is a list of strings
+                        return [str(l).replace("_loss", "") for l in labels]
+
+                    # --- Create subplots ---
+                    fig = make_subplots(
+                        rows=1,
+                        cols=2,
+                        specs=[[{'type': 'domain'}, {'type': 'domain'}]],
+                        subplot_titles=('As Designed', 'User Selected'),
+                        horizontal_spacing=0.12
+                    )
+
+                    figLoss = make_subplots(
+                        rows=1,
+                        cols=2,
+                        specs=[[{'type': 'domain'}, {'type': 'domain'}]],
+                        subplot_titles=('As Designed', 'User Selected'),
+                        horizontal_spacing=0.12
+                    )
+                    fig.add_trace(go.Pie(
+                        labels=as_designed.index,
+                        values=as_designed.values,
+                        # name="As Designed",
+                        hole=0.45,  # donut hole
+                        textinfo='label+percent',  # show label and %
+                        textposition='inside',   # <-- force text inside
+                        textfont=dict(size=12, color="black"),
+                        insidetextorientation='radial',
+                        hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
+                        marker=dict(colors=get_colors(as_designed.index), line=dict(color='white', width=2))
+                    ), 1, 1)
+                    figLoss.add_trace(go.Pie(
+                        labels = clean_labels(as_designed_loss.index.tolist()),
+                        values=as_designed_loss.values,
+                        # name="As Designed",
+                        hole=0.45,  # donut hole
+                        textinfo='label+percent',  # show label and %
+                        textposition='inside',   # <-- force text inside
+                        textfont=dict(size=12, color="black"),
+                        insidetextorientation='radial',
+                        hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
+                        marker=dict(colors=get_colors_loss(as_designed_loss.index), line=dict(color='white', width=2))
+                    ), 1, 1)
+
+                    # --- Add second pie (ECM) ---
+                    fig.add_trace(go.Pie(
+                        labels=ecm.index,
+                        values=ecm.values,
+                        # name="ECM",
+                        hole=0.45,  # donut hole
+                        textinfo='label+percent',
+                        textposition='inside',   # <-- force text inside
+                        textfont=dict(size=12, color="black"),
+                        insidetextorientation='radial',
+                        hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
+                        marker=dict(colors=get_colors(ecm.index), line=dict(color='white', width=2))
+                    ), 1, 2)
+                    figLoss.add_trace(go.Pie(
+                        labels=clean_labels(ecm_loss.index.tolist()),
+                        values=ecm_loss.values,
+                        hole=0.45,  # donut hole
+                        textinfo='label+percent',
+                        textposition='inside',   # <-- force text inside
+                        textfont=dict(size=12, color="black"),
+                        insidetextorientation='radial',
+                        hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}',
+                        marker=dict(
+                            colors=get_colors_loss(ecm_loss.index),
+                            line=dict(color='white', width=2)
+                        )
+                    ), 1, 2)
+                    st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Gains Summary</h5>", unsafe_allow_html=True)
+                    annotations = []
+                    annotations1 = []
+                    # Left chart time
+                    annotations_gain = [
+                        dict(
+                            text="Peak Time: Jun 16, 4 PM",
+                            x=0.20,
+                            y=-0.15,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=12, color="black")
+                        ),
+                        dict(
+                            text="Peak Time: Jun 16, 4 PM",
+                            x=0.80,
+                            y=-0.15,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=12, color="black")
+                        )
+                    ]
+                    annotations_loss = [
+                        dict(
+                            text="Peak Time: Jan 18, 6 AM",
+                            x=0.20,
+                            y=-0.15,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=12, color="black")
+                        ),
+                        dict(
+                            text="Peak Time: Jan 18, 6 AM",
+                            x=0.80,
+                            y=-0.15,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=12, color="black")
+                        )
+                    ]
+                    fig.update_layout(
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="top",
+                            y=-0.18,
+                            xanchor="center",
+                            x=0.5
+                        ),
+                        height=600,
+                        width=1200,
+                        margin=dict(t=120, b=160, l=40, r=40),
+                        annotations=annotations_gain
+                    )
+                
+                    figLoss.update_layout(
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="top",
+                            y=-0.18,
+                            xanchor="center",
+                            x=0.5
+                        ),
+                        height=600,
+                        width=1200,
+                        margin=dict(t=120, b=160, l=40, r=40),
+                        annotations=annotations_loss
+                    )
+                    fig.update_traces(textposition="inside", automargin=True)
+                    figLoss.update_traces(textposition="inside", automargin=True)
+                    st.plotly_chart(fig)
+
+                    # if not negative_params.empty:
+                    #     neg_list = negative_params['Parameters'].tolist()
+                    #     st.markdown(f""" ⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period. Losses components such as {', '.join(map(str, neg_list))} were ignored.""")
+                    # else:
+                    st.markdown(f"""⚠️ **Note:** The above charts consider only Cooling Load for Peak Sizing Period..""")
+                    
+                    st.markdown("<h5 style='text-align:left; color:red; font-weight:600;'>Losses Summary</h5>", unsafe_allow_html=True)
+                    st.plotly_chart(figLoss)
+                    if not positive_params.empty:
+                        pos_list = [i.replace('_loss','') for i in positive_params.index]
+                        st.markdown(
+                            f"""⚠️ **Note:** The above charts consider only Heating Load for Peak Sizing Period.""")
+                    else:
+                        st.markdown(f"""⚠️ **Note:** The above charts consider only only Heating Load for Peak Sizing Period.""")
+                    
+                    st.markdown(
+                        "<h5 style='text-align:left; color:red; font-weight:600;'>Building Peak Load Components of Gains and Losses</h5>", unsafe_allow_html=True)
+                    m_df_all_loss = m_df_all_loss.rename(columns={
+                        'Parameters': 'Parameters ECM',
+                        'As Designed (kW)': 'As Designed ECM (kW)',
+                        'User Selected (kW)': 'User Selected ECM (kW)',
+                        '% Saving': '% Saving ECM'
+                    })
+                    result = pd.concat([m_df_all, m_df_all_loss], axis=1)
+                    result = result.drop(columns=['Parameters ECM'])
+                    result = result.rename(columns={
+                        'As Designed (kW)': 'As Designed',
+                        'User Selected (kW)': 'User Selected',
+                        '% Saving': 'Saving (%)',
+                        'As Designed ECM (kW)': 'As Designed',
+                        'User Selected ECM (kW)': 'User Selected',
+                        '% Saving ECM': 'Saving (%)'
+                    })
+                    result.columns = pd.MultiIndex.from_tuples([
+                        ('', 'Parameters'),
+                        ('Cooling (kW)', 'As Designed'),
+                        ('Cooling (kW)', 'User Selected'),
+                        ('Cooling (kW)', 'Saving (%)'),
+                        ('Heating (kW)', 'As Designed'),
+                        ('Heating (kW)', 'User Selected'),
+                        ('Heating (kW)', 'Saving (%)')
+                    ])
+                    st.dataframe(result)
+
+                    wwr_0 = (row0.get("WWR", 0))
+                    wwr_1 = (row1.get("WWR", 0))
+                    shgc_0 = (row0.get("SHGC", 0))
+                    shgc_1 = (row1.get("SHGC", 0))
+                    r_wall_0 = (row0.get("R-VAL-W", 0))
+                    r_wall_1 = (row1.get("R-VAL-W", 0))
+                    r_roof_0 = (row0.get("R-VAL-R", 0))
+                    r_roof_1 = (row1.get("R-VAL-R", 0))
+                    r_wind_0 = (row0.get("R-VAL-Wind", 0))
+                    r_wind_1 = (row1.get("R-VAL-Wind", 0))
+                    ener_0 = (row0.get("Energy_Outcome(KWH)", 0))
+                    ener_1 = (row1.get("Energy_Outcome(KWH)", 0))
+                    light_0 = (row0.get("Light(W/Sqft)", 0))
+                    light_1 = (row1.get("Light(W/Sqft)", 0))
+                    equip_0 = (row0.get("Equip(W/Sqft)", 0))
+                    equip_1 = (row1.get("Equip(W/Sqft)", 0))
+                    
+                    all_figs_com = []
+                    st.session_state.all_figs_com.extend([figEUI, figA, figB, fig, figLoss])
+                except Exception as e:
+                    st.warning(
+                        """
+                        ⚠️ Error Processing INP File.
+                        Please ensure that: 
+                        - It runs in eQUEST without any pop-up errors. Kindly verify your INP file and try again.
+                        """
+                    )
     
     if st.button("Generate Report"):
         if not st.session_state.all_figs_com:
